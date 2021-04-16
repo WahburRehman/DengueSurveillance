@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
     primaryColor: {
-        backgroundColor: "#d82fff"
+        backgroundColor: "#4169e1"
     },
     textColor: {
         color: "#ffffff"
@@ -11,7 +11,7 @@ export default StyleSheet.create({
         color: "#5a5a5a"
     },
     cardButtonIconColor: {
-        color: "#d82fff"
+        color: "#4169e1"
     },
     headerIconColor: {
         color: "#ffffff"
@@ -20,10 +20,10 @@ export default StyleSheet.create({
         color: "#ffffff"
     },
     pageTitleColor:{
-        color: "#d82fff"
+        color: "#4169e1"
     },
     bottomTabColor:{
-        color:'#d82fff'
+        color:'#4169e1'
     },
     textInputColor:{
         color:"#ffffff"

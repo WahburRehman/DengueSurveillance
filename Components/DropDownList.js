@@ -8,13 +8,6 @@ import commonStyles from '../StyleSheets/StyleSheet';
 
 const DropDownList = (props) => {
 
-    const [item, setItem] = useState('')
-
-    const handleSelect = (item) => {
-        console.log('??')
-        console.log(item);
-        setItem(item);
-    }
     return (
         <DropDownPicker
             items={props.dropDownItems}
@@ -23,28 +16,36 @@ const DropDownList = (props) => {
             containerStyle={{
                 height: 50,
                 width: props.dropDownWidth,
+                // backgroundColor: 'transparent',
+                // borderBottomWidth: 1,
+                // borderBottomColor: '#4169e1'
             }}
             style={{
-                backgroundColor: props.dropDownBackgroundColor,
-                fontSize: 18
+                // backgroundColor: props.dropDownBackgroundColor,
+                fontSize: 18,
+                position: 'relative',
+                // zIndex: 99999,
+                backgroundColor: 'transparent'
             }}
             itemStyle={{
                 justifyContent: 'flex-start',
             }}
             labelStyle={{
                 color: '#5a5a5a',
-                fontSize: props.dropDownFontSize ? props.dropDownFontSize : 16,
+                fontSize: props.dropDownFontSize ? props.dropDownFontSize : 18,
                 textTransform: "uppercase",
                 fontWeight: 'bold',
             }}
             dropDownStyle={{
                 backgroundColor: '#ffffff',
-                // position: 'absolute',
-                // zIndex: 1
+
 
             }}
+            dropDownMaxHeight={300}
             onChangeItem={(item) => props.dropDownOnChangeItem(item)}
             onOpen={props.onDropDownOpen}
+            searchable={props.searchable}
+            children
         />
     );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
+import 'react-native-vector-icons/AntDesign';
 
 //StyleSheet
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -11,10 +12,17 @@ const MyButton = (props) => (
         mode={props.buttonMode}
         onPress={props.onPress}
         color={props.buttonColor}
+        disabled={props.buttonDisabled}
         contentStyle={{
-            flexDirection: 'row-reverse',
+            flexDirection: props.iconPosition ? props.iconPosition : 'row-reverse',
         }}
-        style={{ width: props.buttonWidth ? props.buttonWidth : 250 }}
+        style={{
+            width: props.buttonWidth ? props.buttonWidth : 250,
+            // position: '',
+            zIndex: -1,
+            marginBottom: props.marginBottom
+
+        }}
         labelStyle={styles.buttonLabelStyling}
     >
         {props.buttonName}

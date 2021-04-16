@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Title, Button, TextInput, HelperText } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //StyleSheet
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -15,10 +16,6 @@ const Login = ({ navigation }) => {
 
     const [getUserName, setUserName] = useState('');
     const [getPassword, setPassword] = useState('');
-    // const [getErrorMessage, setErrorMessage] = useState({
-    //     userName: '',
-    //     password: ''
-    // });
 
     const [errorMessageUserName, setErrorMessageUserName] = useState('');
     const [showErrorUserName, setShowErrorUsername] = useState(false);
@@ -26,26 +23,44 @@ const Login = ({ navigation }) => {
     const [errorMessagePassword, setErrorMessagePassword] = useState('');
     const [showErrorPassword, setShowErrorPassword] = useState(false);
 
-    // const [getShowError, setShowError] = useState({
-    //     userName: false,
-    //     password: false
-    // });
-
-
     const handleLoginButton = () => {
-        // if (getUserName === '') {
-        //     setErrorMessageUserName('This Should Not Be Empty');
-        //     setShowErrorUsername(true);
-        // }
-        // if (getPassword === '') {
-        //     setErrorMessagePassword('This Should Not Be Empty');
-        //     setShowErrorPassword(true);
-        // }
-        // else {
-        //     navigation.navigate("home");
-        // }
+        if (getUserName === '') {
+            setErrorMessageUserName('This Should Not Be Empty');
+            setShowErrorUsername(true);
+        }
+        if (getPassword === '') {
+            setErrorMessagePassword('This Should Not Be Empty');
+            setShowErrorPassword(true);
+        }
+        else {
+            // navigation.navigate("home");
+            fetch('http://10.0.2.2:3000/signIn', {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    'userName': getUserName,
+                    'password': getPassword
+                })
+            })
+                .then(res => res.json())
+                .then(async (data) => {
+                    if (data.token) {
+                        try {
+                            await AsyncStorage.setItem('userToken', data.token);
+                            console.log('token saved!!', data.token);
+                        } catch (error) {
+                            console.log("token storing error: ", error);
+                        }
+                    }
+                    else {
+                        console.log("invalid user: ", data.error);
+                    }
+                })
+        }
 
-        navigation.navigate("home");
+         
 
     }
 

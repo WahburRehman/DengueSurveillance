@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 /**
  * Sample React Native App
  * https://github.com/facebook/react-native
@@ -25,7 +26,7 @@ import StackNavigator from './Navigations/StackNavigator';
 const App = () => {
   return (
     <>
-      <StatusBar barStyle="auto" backgroundColor="#000000" />
+      <StatusBar barStyle="auto" backgroundColor='#4169e1' />
       <SafeAreaView style={{ flex: 1 }}>
         <StackNavigator />
       </SafeAreaView>

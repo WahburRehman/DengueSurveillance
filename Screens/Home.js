@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, SafeAreaView, Dimensions, StyleSheet, Button } from 'react-native';
 import { Title } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //COMPONENTS
 import Header from '../Components/Header';
@@ -15,9 +16,19 @@ const screenWidth = Dimensions.get('window').width;
 const Home = ({ navigation }) => {
 
 
-    const navigateTo = () => {
+    const navigateTo = (screen) => {
         console.log('called navigato to')
-        navigation.navigate('addPatient');
+        navigation.navigate(screen);
+    }
+
+    const handleLogOutButton = async () => {
+        console.log('??')
+        try {
+            await AsyncStorage.removeItem('userToken');
+            console.log("key Removed!!");
+        } catch (error) {
+            console.log('remove Key Error: ', error);
+        }
     }
 
     return (
@@ -39,29 +50,32 @@ const Home = ({ navigation }) => {
 
             <View style={styles.cardButtonViewStyling} >
                 <CardButton
-                    cardButtonName="Add Patients"
+                    cardButtonName="Add Patient"
                     iconName="person-add"
                     iconColor={commonStyles.cardButtonIconColor.color}
-                    goTo={navigateTo}
+                    goTo={() => navigateTo('selectAddPatient')}
                 />
                 <CardButton
                     cardButtonName="View Patients"
                     iconName="eye"
                     iconColor={commonStyles.cardButtonIconColor.color}
-                    goTo={navigateTo}
+                    goTo={() => navigateTo('viewPatients')}
                 />
             </View>
 
             <View style={styles.cardButtonViewStyling}>
                 <CardButton
-                    cardButtonName="Campaign Req"
+                    cardButtonName="Campaign"
                     iconName="megaphone"
                     iconColor={commonStyles.cardButtonIconColor.color}
+                    goTo={() => navigateTo('campaignRequest')}
                 />
                 <CardButton
-                    cardButtonName="Campaing Status"
+                    cardButtonName="All Campaigns"
                     iconName="search"
                     iconColor={commonStyles.cardButtonIconColor.color}
+                    goTo={() => navigateTo('allRequests')}
+                    
                 />
             </View>
 
@@ -75,6 +89,8 @@ const Home = ({ navigation }) => {
                     cardButtonName="Complaints"
                     iconName="sad-outline"
                     iconColor={commonStyles.cardButtonIconColor.color}
+                    goTo={() => navigateTo('allComplaints')}
+                    
                 />
             </View>
 
@@ -84,7 +100,7 @@ const Home = ({ navigation }) => {
             {/*EMPTY VIEW*/}
             {/**************************************/}
 
-            <View></View>
+            <Button title="logout" onPress={() => handleLogOutButton()} />
         </SafeAreaView >
     );
 }

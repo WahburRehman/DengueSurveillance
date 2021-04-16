@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { Appbar, Title } from 'react-native-paper';
+
+// const {width} = Dimensions.get('Window');
 
 //StyleSheet
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -18,28 +20,36 @@ const Header = (props) => {
                     primary: commonStyles.primaryColor.backgroundColor
                 }
             }}
-            style={{ justifyContent: "space-around", alignItems: 'center' }}
+            style={{ justifyContent: "space-between", alignItems: 'center' }}
         >
-            <View style={{ width: 30, height: 30 }}>
+            <View style={{ marginLeft: 5 }}>
                 {props.showLeftIcon ?
                     <TouchableOpacity
                         activeOpacity={0.5}
                         onPress={props.backTo}
 
                     >
-                        <Icon name="arrow-back" size={25} color={commonStyles.headerIconColor.color} />
+                        <Icon name="arrow-back-outline" size={30} color={commonStyles.headerIconColor.color} />
                     </TouchableOpacity>
-                    : null
+                    :
+                    null
                 }
             </View>
 
             <Title style={styles.headerTitleStyling}>{props.headerTitle}</Title>
 
 
-            <View style={{ width: 30, height: 30 }}>
+            <View style={{ marginRight: 5 }}>
                 {props.showRightIcon ?
-                    <Icon name="arrow-back" size={25} color={commonStyles.headerIconColor.color} />
-                    : null
+                    <TouchableOpacity
+                        activeOpacity={0.5}
+                        onPress={props.rightIconPress}
+
+                    >
+                        <Icon name={props.rightIcon} size={30} color={commonStyles.headerIconColor.color} />
+                    </TouchableOpacity>
+                    :
+                    null
                 }
             </View>
         </Appbar.Header>
@@ -53,7 +63,7 @@ const styles = StyleSheet.create({
         color: commonStyles.headerTitleColor.color,
         fontSize: 22,
         textTransform: 'uppercase',
-        width: 208,
+        // width: 208,
         textAlign: 'center',
     }
 })

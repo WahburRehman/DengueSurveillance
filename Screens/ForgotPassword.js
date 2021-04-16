@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, SafeAreaView, StyleSheet, Dimensions } from 'react-native';
+import { View, SafeAreaView, StyleSheet, Dimensions, Text } from 'react-native';
 import { HelperText, Title } from 'react-native-paper';
 
 //StyleSheet
@@ -15,10 +15,17 @@ const screenWidth = Dimensions.get('window').width;
 
 const ForgotPassword = ({ navigation }) => {
 
-    const [getUserName, setUserName] = useState('');
-    const [errorMessageUserName, setErrorMessageUserName] = useState('');
+    const [userName, setUserName] = useState('');
     const [showErrorUserName, setShowErrorUsername] = useState(false);
+    const [errorMessageUserName, setErrorMessageUserName] = useState('');
     const [userNameTextInputMarginBottm, setUserNameTextInputMarginBottm] = useState(0.0001);
+
+    const [message, setMessage] = useState({
+        message: 'adasdadsa',
+        showMessage: false,
+        isError: false,
+        disableButton: false,
+    });
 
     const getInputTextUserName = (text) => {
         setUserName(text);
@@ -31,18 +38,55 @@ const ForgotPassword = ({ navigation }) => {
     }
 
     const handleResetPasswordButton = () => {
-        if (getUserName === '') {
+        if (!userName) {
             setErrorMessageUserName('This Should Not Be Empty');
             setShowErrorUsername(true);
         }
         else {
-            console.log('password sent')
+            fetch('http://10.0.2.2:3000/resetPassword', {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    actor: 'healthWorker',
+                    userName: userName
+                })
+            })
+                .then(result => result.json())
+                .then(res => {
+                    if (res.message) {
+                        setMessage((prevState) => {
+                            return {
+                                message: res.message,
+                                showMessage: true,
+                                isError: false,
+                                disableButton: true
+                            }
+                        });
+                        console.log(res.message);
+                    } else if (res.error) {
+                        setMessage((prevState) => {
+                            return {
+                                message: res.error,
+                                showMessage: true,
+                                isError: true,
+                                disableButton: false
+                            }
+                        });
+                        console.log(res.error);
+                    }
+                })
         }
     }
 
     const handleBackTo = () => {
         console.log('back');
         navigation.navigate('login');
+    }
+
+    const handleFormSubmit = (e) => {
+        alert(userName);
+        e.preventDefault()
+
     }
 
 
@@ -56,7 +100,11 @@ const ForgotPassword = ({ navigation }) => {
 
 
             <View style={{ width: screenWidth }}>
-                <Header headerTitle="Forgot Password" showLeftIcon={true} backTo={handleBackTo} />
+                <Header
+                    headerTitle="Forgot Password"
+                    showLeftIcon={true}
+                    backTo={handleBackTo}
+                />
             </View>
 
 
@@ -66,12 +114,24 @@ const ForgotPassword = ({ navigation }) => {
             {/**************************************/}
 
 
-
             <View style={{ width: screenWidth, alignItems: 'center' }}>
+                {message.showMessage ?
+                    <Text style={[
+                        styles.responseMessageStyling,
+                        { color: message.isError ? '#681c1c' : '#4BB543' }
+                    ]}
+                    >
+                        {message.message}
+                    </Text>
+                    :
+                    null
+                }
+
                 <Title style={styles.titleStyling}>Enter Your Username To Get New Password</Title>
 
 
 
+                {/* <Form method="POST" onSubmit={handleFormSubmit}> */}
                 {/**************************************/}
                 {/* UserName Field */}
                 {/**************************************/}
@@ -80,10 +140,10 @@ const ForgotPassword = ({ navigation }) => {
                 <MyTextInput
                     textInputMode="outlined"
                     textInputLabel="USERNAME"
-                    getText={getUserName}
+                    getText={userName}
                     textInputPlaceHolder="Enter Username"
                     setText={(text) => getInputTextUserName(text)}
-                    textInputMarginBottom={userNameTextInputMarginBottm}
+                    textInputMarginBottom={0.1}
                     isError={showErrorUserName}
                     onFocus={handleOnFocusUserName}
                     onBlur={handleOnFocusUserName}
@@ -113,15 +173,15 @@ const ForgotPassword = ({ navigation }) => {
                 {/* RESET PASSWORD BUTTON */}
                 {/**************************************/}
 
-
-
                 <MyButton
                     buttonName="Reset Password"
                     buttonMode="contained"
                     buttonIcon="lock-reset"
                     buttonWidth={250}
+                    buttonDisabled={message.disableButton}
                     onPress={handleResetPasswordButton}
                 />
+                {/* </Form> */}
             </View>
 
 
@@ -156,5 +216,12 @@ const styles = StyleSheet.create({
         color: "red",
         fontWeight: "bold",
         marginBottom: 8
+    },
+    responseMessageStyling: {
+        marginBottom: 20,
+        textAlign: 'center',
+        fontSize: 20,
+        fontFamily: 'sans-serif',
+        fontWeight: 'bold'
     }
 });
