@@ -1,5 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, StyleSheet, Image } from 'react-native';
+import React from 'react';
+import { useSelector, useDispatch } from 'react-redux'
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    Dimensions,
+    StyleSheet,
+    Image
+} from 'react-native';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+//ACTIONS
+import * as actions from '../Redux/Actions/actions';
 
 //STYLESHEET
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -11,6 +24,19 @@ import AndDesginIcon from 'react-native-vector-icons/AntDesign';
 const { width } = Dimensions.get('window');
 
 const DrawerContent = (props) => {
+
+    const dispatch = useDispatch();
+
+    const handleSignOutButton = async () => {
+        console.log('??')
+        try {
+            await AsyncStorage.removeItem('userInfoLocal');
+            console.log("key Removed!!");
+            dispatch(actions.changeLoginStatus(false));
+        } catch (error) {
+            console.log('remove Key Error: ', error);
+        }
+    }
 
     return (
         <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
@@ -25,8 +51,8 @@ const DrawerContent = (props) => {
                 }}
             >
                 <View style={{ marginLeft: 8, marginTop: 8 }}>
-                    <Image source={{ uri: 'data:image/png;base64,' + props.data.dp }} style={styles.profile} />
-                    <Text style={styles.nameText}>{props.data.name}</Text>
+                    <Image source={{ uri: 'data:image/png;base64,' + props.userInfo.dp }} style={styles.profile} />
+                    <Text style={styles.nameText}>{props.userInfo.name}</Text>
                 </View>
             </View>
 
@@ -71,7 +97,7 @@ const DrawerContent = (props) => {
                             </View>
                             <TouchableOpacity
                                 activeOpacity={0.5}
-                                onPress={() => props.navigation.navigate('profile')}>
+                                onPress={handleSignOutButton}>
                                 <Text style={styles.DrawerItemText}>Sign out</Text>
                             </TouchableOpacity>
                         </View>

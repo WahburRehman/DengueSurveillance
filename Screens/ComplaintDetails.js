@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import {
     View,
     StyleSheet,
@@ -13,7 +14,8 @@ import {
     Snackbar
 } from 'react-native-paper';
 
-
+//ACTIONS
+import * as actions from '../Redux/Actions/actions';
 
 //STYLESHEET
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -33,9 +35,13 @@ const textInputWidth = width - 50;
 const ComplaintDetails = (props) => {
 
     const { id } = props.route.params;
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [serverResponse, setServerResponse] = useState('');
+
+    const dispatch = useDispatch();
+    // const userInfo = useSelector(state => state.userInfo);
+    const complaints = useSelector(state => state.complaints);
 
     const [complaint, setComplaint] = useState({
         subject: '',
@@ -51,31 +57,16 @@ const ComplaintDetails = (props) => {
     });
 
     useEffect(() => {
-        fetch('http://10.0.2.2:3000/findOneReport', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'id': id
-            })
+        const info = complaints.filter(item => {
+            return item._id === id;
         })
-            .then(result => result.json())
-            .then(data => {
-                if (data.error) {
-                    console.log(error)
-                } else {
-                    setComplaint(prevState => {
-                        return {
-                            subject: data.subject,
-                            date: data.date,
-                            complaintStatus: data.reportStatus,
-                            message: data.reportMessage,
-                        }
-                    });
-                }
-            });
-        setIsLoading(false);
+
+        setComplaint({
+            subject: info[0].subject,
+            date: info[0].date,
+            complaintStatus: info[0].reportStatus,
+            message: info[0].reportMessage,
+        })
     }, []);
 
 
@@ -97,7 +88,7 @@ const ComplaintDetails = (props) => {
                     setShowSnackbar(true)
                 }
                 else if (data.message) {
-                    setServerResponse(data.error);
+                    setServerResponse(data.message);
                     setShowSnackbar(true)
                     setComplaint(prevState => {
                         return {
@@ -116,6 +107,7 @@ const ComplaintDetails = (props) => {
                             disable: true
                         }
                     });
+                    dispatch(actions.deleteComplaint(id));
                 }
             });
     }
@@ -179,7 +171,7 @@ const ComplaintDetails = (props) => {
 
                                     </View>
 
-                                    <View>
+                                    <View style={{ zIndex: 1 }}>
                                         <MyButton
                                             buttonName={button.label}
                                             buttonMode="contained"

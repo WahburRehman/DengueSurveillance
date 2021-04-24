@@ -192,8 +192,11 @@ const AddPatientOffline = (props) => {
             const currentUser = await AsyncStorage.getItem('patients')
 
             console.log('current users: ', currentUser);
+
+            return true;
         } catch (error) {
-            // Error saving data
+            console.log(error);
+            return false;
         }
     };
 
@@ -250,7 +253,17 @@ const AddPatientOffline = (props) => {
                 setShowError(prevState => { return { ...prevState, symptoms: true } });
             }
             else {
-                storeData(patientData);
+                let storeResponse = storeData(patientData);
+                if (storeResponse) {
+                    setServerResponse('Data Stored Successfully!!');
+                    resetStates();
+                    setIsPatientAdded(true);
+                }
+                else {
+                    setServerResponse('Error!!');
+                    setShowSnackbar(true);
+                    setIsPatientAdded(false);
+                }
             }
         }
     }

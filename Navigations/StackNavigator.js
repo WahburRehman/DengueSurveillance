@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { connect, useSelector, useDispatch } from 'react-redux'
+
+//ACTIONS
+import * as actions from '../Redux/Actions/actions';
 
 //Navigations
 import { enableScreens } from 'react-native-screens';
@@ -8,8 +12,8 @@ import { createNativeStackNavigator } from 'react-native-screens/native-stack';
 
 //Screens
 import Login from '../Screens/Login';
+import SendSms from '../Screens/SendSms';
 import Profile from '../Screens/Profile';
-import AddPatient from '../Screens/AddPatientOnline';
 import AllRequests from '../Screens/AllRequests';
 import ViewPatients from '../Screens/ViewPatients';
 import SplashScreen from '../Screens/SplashScreen';
@@ -23,7 +27,6 @@ import AddPatientOnline from '../Screens/AddPatientOnline';
 import AddPatientOffline from '../Screens/AddPatientOffline';
 import SelectAddPatient from '../Screens/SelectAddPatient';
 import ComplaintDetails from '../Screens/ComplaintDetails';
-import AddPatientResponse from '../Screens/AddPatientResponse';
 
 
 
@@ -44,12 +47,6 @@ import AddPatientResponse from '../Screens/AddPatientResponse';
 //     AddPatientResponse
 // } from '../Screens';
 
-
-
-
-
-import LoginScreen from '../Screens/LoginScreen';
-
 //Navigators
 import BottomTabNavigator from '../Navigations/BottomTabNavigator';
 
@@ -58,23 +55,39 @@ enableScreens();
 const Stack = createNativeStackNavigator();
 
 
-const StackNavigator = () => {
-    const [foundUserToken, setFoundUserToken] = useState(null);
+const StackNavigator = (props) => {
+
+
+    const dispatch = useDispatch();
+    const isUserLoggedIn = useSelector(state => state.authentication);
 
     useEffect(() => {
-        try {
-            const userToken = AsyncStorage.getItem('userToken');
-            userToken ? setFoundUserToken(false) : setFoundUserToken(false);
-            console.log("user Token is: ", userToken);
-        } catch (error) {
-            console.log("asyncStorage value get Error: ", error);
-        }
+        dispatch(actions.changeLoginStatus(null));
+        getToken();
     }, []);
+
+    const getToken = async () => {
+        try {
+            const getItem = await AsyncStorage.getItem('userInfoLocal');
+            if (getItem) {
+                const parsedItem = await JSON.parse(getItem);
+                // console.log('user Data: ', parsedItem);
+                if (parsedItem.authToken) {
+                    dispatch(actions.storeUserInfo(parsedItem));
+                    dispatch(actions.changeLoginStatus(true));
+                }
+            } else {
+                dispatch(actions.changeLoginStatus(false));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     return (
         <NavigationContainer>
             <Stack.Navigator>
-                {foundUserToken === null ?
+                {isUserLoggedIn === null ?
                     (
                         <>
                             <Stack.Screen
@@ -87,7 +100,7 @@ const StackNavigator = () => {
                         </>
                     )
                     :
-                    !foundUserToken ?
+                    isUserLoggedIn ?
                         (
                             <>
                                 <Stack.Screen
@@ -155,6 +168,15 @@ const StackNavigator = () => {
                                 />
 
                                 <Stack.Screen
+                                    name="sendSms"
+                                    component={SendSms}
+                                    options={{
+                                        headerShown: false
+                                    }}
+                                />
+
+
+                                <Stack.Screen
                                     name="allComplaints"
                                     component={AllComplaints}
                                     options={{
@@ -201,7 +223,7 @@ const StackNavigator = () => {
                             <>
                                 < Stack.Screen
                                     name="login"
-                                    component={LoginScreen}
+                                    component={Login}
                                     options={{
                                         headerShown: false
                                     }}

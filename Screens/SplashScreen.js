@@ -4,7 +4,7 @@ import { color } from 'react-native-reanimated';
 
 const SplashScreen = () => {
     return (
-        <ActivityIndicator style={styles.splashScreenView} size={80} color="#d82fff" />
+        <ActivityIndicator style={styles.splashScreenView} size={80} color="#4169e1" />
     );
 }
 

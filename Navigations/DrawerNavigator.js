@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { useSelector } from 'react-redux';
 
 //Navigation
 import { createDrawerNavigator, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
@@ -17,47 +17,49 @@ const Drawer = createDrawerNavigator();
 
 const DrawerNavigator = () => {
 
-    const [data, setData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const userInfo = useSelector(state => state.userInfo);
 
-    useEffect(() => {
-        fetch('http://10.0.2.2:3000/findOneHealthWorkersRecord', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'id': '605915ef97ab942584075529'
-            })
-        })
-            .then(result => result.json())
-            .then(data => {
-                if (data.error) {
-                    console.log(data.error)
-                    setIsLoading(false);
-                } else {
-                    console.log(data.message)
-                    setData(data);
-                    setIsLoading(false);
-                }
-            }).catch(error => {
-                console.log(error);
-            })
-    }, []);
+    const [data, setData] = useState([]);
+    // const [isLoading, setIsLoading] = useState(true);
+
+    // useEffect(() => {
+    //     fetch('http://10.0.2.2:3000/findOneHealthWorkersRecord', {
+    //         method: "POST",
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({
+    //             'id': '605915ef97ab942584075529'
+    //         })
+    //     })
+    //         .then(result => result.json())
+    //         .then(data => {
+    //             if (data.error) {
+    //                 console.log(data.error)
+    //                 setIsLoading(false);
+    //             } else {
+    //                 console.log(data.message)
+    //                 setData(data);
+    //                 setIsLoading(false);
+    //             }
+    //         }).catch(error => {
+    //             console.log(error);
+    //         })
+    // }, []);
     return (
         <>
-            {isLoading ?
+            {/* {isLoading ?
                 <SplashScreen />
-                :
-                <Drawer.Navigator
-                    drawerType="slide"
-                    drawerContent={DrawerContent}
-                    drawerContentOptions={{ data: data }}
-                >
-                    <Drawer.Screen name="home" component={Home} />
-                    <Drawer.Screen name="profile" component={Profile} />
-                </Drawer.Navigator >
-            }
+                : */}
+            <Drawer.Navigator
+                drawerType="slide"
+                drawerContent={props => <DrawerContent {...props} />}
+                drawerContentOptions={{ userInfo }}
+            >
+                <Drawer.Screen name="home" component={Home} />
+                <Drawer.Screen name="profile" component={Profile} />
+            </Drawer.Navigator >
+            {/* } */}
         </>
     );
 }

@@ -17,9 +17,6 @@ import {
   StatusBar,
 } from 'react-native';
 
-//Screens
-import Login from './Screens/Login';
-
 //Navigations
 import StackNavigator from './Navigations/StackNavigator';
 

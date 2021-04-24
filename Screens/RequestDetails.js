@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import Spinner from 'react-native-spinkit';
 import {
     View,
     StyleSheet,
@@ -13,6 +15,8 @@ import {
     Snackbar
 } from 'react-native-paper';
 
+//ACTIONS
+import * as actions from '../Redux/Actions/actions';
 
 //STYLESHEET
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -21,23 +25,24 @@ import commonStyles from '../StyleSheets/StyleSheet';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 //COMPONENTS
-import Header from '../Components/Header';
 import MyButton from '../Components/Button';
-import SplashScreen from './SplashScreen';
 
 //SCREEN WIDTH
 const { width, height } = Dimensions.get('window');
-const textInputWidth = width - 50;
 
 const RequestDetails = (props) => {
 
     const { id } = props.route.params;
-    console.log('id', id);
-
-    const [data, setData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [serverResponse, setServerResponse] = useState('');
+
+    const dispatch = useDispatch();
+    const requests = useSelector(state => state.requests);
+
+    const [loadingValues, setLoadingValues] = useState({
+        isLoading: false,
+        backgroundOpactiy: 1
+    });
 
     const [request, setRequest] = useState({
         subject: '',
@@ -53,38 +58,23 @@ const RequestDetails = (props) => {
     });
 
     useEffect(() => {
-        fetch('http://10.0.2.2:3000/findOneRequest', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'id': id
-            })
+        const info = requests.filter(item => {
+            return item._id === id;
+        });
+
+        console.log(info);
+
+        setRequest({
+            subject: info[0].subject,
+            date: info[0].date,
+            requestStatus: info[0].requestStatus,
+            message: info[0].requestMessage,
         })
-            .then(result => result.json())
-            .then(data => {
-                if (data.error) {
-                    console.log(error)
-                } else {
-                    setRequest(prevState => {
-                        return {
-                            subject: data.subject,
-                            date: data.date,
-                            requestStatus: data.requestStatus,
-                            message: data.requestMessage,
-                        }
-                    });
-                }
-            });
-        setIsLoading(false);
     }, []);
-
-    console.log('data: ', data);
-
 
     const handleDeleteButton = () => {
         console.log('delete button');
+        setLoadingValues({ isLoading: true, backgroundOpactiy: 0.5 });
         fetch('http://10.0.2.2:3000/deleteOneRequest', {
             method: "DELETE",
             headers: {
@@ -93,9 +83,9 @@ const RequestDetails = (props) => {
             body: JSON.stringify({
                 'id': id,
             })
-        })
-            .then(res => res.json())
+        }).then(res => res.json())
             .then((data) => {
+                setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
                 if (data.error) {
                     console.log(data.error);
                     setServerResponse(data.error);
@@ -103,125 +93,123 @@ const RequestDetails = (props) => {
                 }
                 else if (data.message) {
                     console.log(data.message);
-                    setServerResponse(data.error);
+                    setServerResponse(data.message);
                     setShowSnackbar(true)
-                    setRequest(prevState => {
-                        return {
-                            subject: '',
-                            requestStatus: '',
-                            date: '',
-                            message: '',
-                        }
+                    setRequest({
+                        subject: '',
+                        requestStatus: '',
+                        date: '',
+                        message: '',
                     });
 
-                    setButton(prevState => {
-                        return {
-                            ...prevState,
-                            label: 'deleted',
-                            icon: 'delete',
-                            disable: true
-                        }
+                    setButton({
+                        label: 'deleted',
+                        icon: 'delete',
+                        disable: true
                     });
+
+                    dispatch(actions.deleteRequest(id));
                 }
+            }).catch(error => {
+                console.log(error);
             });
     }
 
     return (
         <>
-            {isLoading ?
-                <SplashScreen />
-                :
-                <>
-                    <View style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
-                        <View style={styles.headerView}>
-                            <TouchableOpacity
-                                style={styles.iconView}
-                                activeOpacity={0.5}
-                                onPress={() => props.navigation.navigate('allRequests')}
-                            >
-                                <Icon name="arrow-back" size={30} color="#ffffff" />
-                            </TouchableOpacity>
-
-                            <Text style={styles.headerText}>Request Details</Text>
-
-                            <View style={styles.iconView}>
-                            </View>
-                        </View>
-
-                        <View
-                            style={{
-                                ...styles.contentView,
-                            }}
-                        >
-                            <View style={{ ...StyleSheet.absoluteFill }} >
-                                <ImageBackground
-                                    source={require('../Images/bg0.jpg')}
-                                    style={styles.imageBackground}
-                                >
-                                    <View >
-
-                                        <View style={styles.detailsView}>
-                                            <Title style={styles.title}>subject</Title>
-                                            <Paragraph style={styles.paragraph}>{request.subject}</Paragraph>
-                                        </View>
-
-                                        <View style={styles.detailsView}>
-                                            <Title style={styles.title}>status</Title>
-                                            <Paragraph style={styles.paragraph}>{request.requestStatus}</Paragraph>
-                                        </View>
-
-                                        <View style={styles.detailsView}>
-                                            <Title style={styles.title}>date</Title>
-                                            <Paragraph style={styles.paragraph}>{request.date}</Paragraph>
-                                        </View>
-
-                                        <View style={styles.detailsView}>
-                                            <Title style={styles.title}>message</Title>
-                                            <Paragraph style={styles.paragraph}>{request.message}</Paragraph>
-                                        </View>
-
-                                    </View>
-
-                                    <View>
-                                        <MyButton
-                                            buttonName={button.label}
-                                            buttonMode="contained"
-                                            buttonIcon={button.icon}
-                                            buttonColor={commonStyles.primaryColor.backgroundColor}
-                                            buttonWidth='100%'
-                                            buttonDisabled={button.disable}
-                                            onPress={handleDeleteButton}
-                                        />
-                                    </View>
-                                </ImageBackground>
-                            </View>
-                        </View>
-                    </View >
-
-                    <Snackbar
-                        visible={showSnackbar}
-                        onDismiss={() => setShowSnackbar(false)}
-                        // action={{
-                        //     label: 'Undo',
-                        //     onPress: () => {
-                        //         // Do something
-                        //     },
-                        // }}
-                        duration={2000}
-
-                        style={{
-                            backgroundColor: commonStyles.primaryColor.backgroundColor,
-                            borderRadius: 10,
-                            alignSelf: 'center',
-                            marginBottom: 30,
-                            fontSize: '10%',
-
-                        }}
+            <View style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
+                {loadingValues.isLoading && < Spinner style={{
+                    position: 'absolute',
+                    zIndex: 1,
+                    left: '46%',
+                    top: '50%'
+                }} size={70} color="blue" type="Circle" />}
+                <View style={styles.headerView}>
+                    <TouchableOpacity
+                        style={styles.iconView}
+                        activeOpacity={0.5}
+                        onPress={() => props.navigation.navigate('allRequests')}
                     >
-                        {serverResponse}
-                    </Snackbar>
-                </>
-            }
+                        <Icon name="arrow-back" size={30} color="#ffffff" />
+                    </TouchableOpacity>
+
+                    <Text style={styles.headerText}>Request Details</Text>
+
+                    <View style={styles.iconView}>
+                    </View>
+                </View>
+
+                <View
+                    style={{
+                        ...styles.contentView,
+                    }}
+                >
+                    <View style={{ ...StyleSheet.absoluteFill }} >
+                        <ImageBackground
+                            source={require('../Images/bg0.jpg')}
+                            style={{ ...styles.imageBackground, opacity: loadingValues.backgroundOpactiy }}
+                        >
+                            <View >
+
+                                <View style={styles.detailsView}>
+                                    <Title style={styles.title}>subject</Title>
+                                    <Paragraph style={styles.paragraph}>{request.subject}</Paragraph>
+                                </View>
+
+                                <View style={styles.detailsView}>
+                                    <Title style={styles.title}>status</Title>
+                                    <Paragraph style={styles.paragraph}>{request.requestStatus}</Paragraph>
+                                </View>
+
+                                <View style={styles.detailsView}>
+                                    <Title style={styles.title}>date</Title>
+                                    <Paragraph style={styles.paragraph}>{request.date}</Paragraph>
+                                </View>
+
+                                <View style={styles.detailsView}>
+                                    <Title style={styles.title}>message</Title>
+                                    <Paragraph style={styles.paragraph}>{request.message}</Paragraph>
+                                </View>
+                            </View>
+
+                            <View style={{ zIndex: 1 }}>
+                                <MyButton
+                                    buttonName={button.label}
+                                    buttonMode="contained"
+                                    buttonIcon={button.icon}
+                                    buttonColor={commonStyles.primaryColor.backgroundColor}
+                                    buttonWidth='100%'
+                                    buttonDisabled={button.disable}
+                                    onPress={handleDeleteButton}
+                                />
+                            </View>
+                        </ImageBackground>
+                    </View>
+                </View>
+            </View >
+
+            <Snackbar
+                visible={showSnackbar}
+                onDismiss={() => setShowSnackbar(false)}
+                // action={{
+                //     label: 'Undo',
+                //     onPress: () => {
+                //         // Do something
+                //     },
+                // }}
+                duration={2000}
+
+                style={{
+                    backgroundColor: commonStyles.primaryColor.backgroundColor,
+                    borderRadius: 10,
+                    alignSelf: 'center',
+                    marginBottom: 30,
+                    fontSize: '10%',
+
+                }}
+            >
+                {serverResponse}
+            </Snackbar>
         </>
     );
 }

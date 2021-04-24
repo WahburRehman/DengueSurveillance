@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-
-//STYLESHEET
-import commonStyles from '../StyleSheets/StyleSheet';
-
 
 const DropDownList = (props) => {
 
@@ -45,7 +40,6 @@ const DropDownList = (props) => {
             onChangeItem={(item) => props.dropDownOnChangeItem(item)}
             onOpen={props.onDropDownOpen}
             searchable={props.searchable}
-            children
         />
     );
 }

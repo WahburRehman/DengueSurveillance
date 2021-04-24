@@ -1,19 +1,32 @@
 import React, { useState } from 'react';
-import { View, SafeAreaView, StyleSheet, Dimensions, Text } from 'react-native';
+
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    ImageBackground,
+    Keyboard,
+    KeyboardAvoidingView,
+    Dimensions
+} from 'react-native';
+
 import { HelperText, Title } from 'react-native-paper';
 
 //StyleSheet
 import commonStyles from '../StyleSheets/StyleSheet';
 
+//ICON
+import Icon from 'react-native-vector-icons/Ionicons';
+
 //Compoonents
-import Header from '../Components/Header';
 import MyButton from '../Components/Button';
 import MyTextInput from '../Components/TextInput';
 
 //SCREEN WIDTH
 const screenWidth = Dimensions.get('window').width;
 
-const ForgotPassword = ({ navigation }) => {
+const ForgotPassword = (props) => {
 
     const [userName, setUserName] = useState('');
     const [showErrorUserName, setShowErrorUsername] = useState(false);
@@ -38,6 +51,7 @@ const ForgotPassword = ({ navigation }) => {
     }
 
     const handleResetPasswordButton = () => {
+        Keyboard.dismiss();
         if (!userName) {
             setErrorMessageUserName('This Should Not Be Empty');
             setShowErrorUsername(true);
@@ -78,132 +92,147 @@ const ForgotPassword = ({ navigation }) => {
         }
     }
 
-    const handleBackTo = () => {
-        console.log('back');
-        navigation.navigate('login');
-    }
-
-    const handleFormSubmit = (e) => {
-        alert(userName);
-        e.preventDefault()
-
-    }
-
-
     return (
-        <SafeAreaView style={{ flex: 1, justifyContent: 'space-between', alignItems: 'center' }} >
-
-
-            {/**************************************/}
-            {/* HEADER VIEW */}
-            {/**************************************/}
-
-
-            <View style={{ width: screenWidth }}>
-                <Header
-                    headerTitle="Forgot Password"
-                    showLeftIcon={true}
-                    backTo={handleBackTo}
-                />
-            </View>
-
-
-
-            {/**************************************/}
-            {/* CENTER VIEW */}
-            {/**************************************/}
-
-
-            <View style={{ width: screenWidth, alignItems: 'center' }}>
-                {message.showMessage ?
-                    <Text style={[
-                        styles.responseMessageStyling,
-                        { color: message.isError ? '#681c1c' : '#4BB543' }
-                    ]}
+        <>
+            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
+                <View style={styles.headerView}>
+                    <TouchableOpacity
+                        style={styles.iconView}
+                        activeOpacity={0.5}
+                        onPress={() => props.navigation.navigate('login')}
                     >
-                        {message.message}
-                    </Text>
-                    :
-                    null
-                }
+                        <Icon name="arrow-back" size={30} color="#ffffff" />
+                    </TouchableOpacity>
 
-                <Title style={styles.titleStyling}>Enter Your Username To Get New Password</Title>
+                    <Text style={styles.headerText}>Forgot Password</Text>
 
-
-
-                {/* <Form method="POST" onSubmit={handleFormSubmit}> */}
-                {/**************************************/}
-                {/* UserName Field */}
-                {/**************************************/}
-
-
-                <MyTextInput
-                    textInputMode="outlined"
-                    textInputLabel="USERNAME"
-                    getText={userName}
-                    textInputPlaceHolder="Enter Username"
-                    setText={(text) => getInputTextUserName(text)}
-                    textInputMarginBottom={0.1}
-                    isError={showErrorUserName}
-                    onFocus={handleOnFocusUserName}
-                    onBlur={handleOnFocusUserName}
-                />
-
-
-
-                {/**************************************/}
-                {/* HELPER TEXT FOR USERNAME FIELD */}
-                {/**************************************/}
-
-
-
-                <View style={{ width: 290 }}>
-                    <HelperText
-                        type="error"
-                        visible={showErrorUserName}
-                        style={styles.helperTextStyling}
-                    >
-                        {errorMessageUserName}
-                    </HelperText>
+                    <View style={styles.iconView}>
+                    </View>
                 </View>
 
+                <View
+                    style={styles.contentView}>
+                    <View style={{ ...StyleSheet.absoluteFill }} >
+                        <ImageBackground source={require('../Images/bg0.jpg')}
+                            style={styles.imageBackground}
+
+                        >
+                            {message.showMessage ?
+                                <Text style={[
+                                    styles.responseMessageStyling,
+                                    { color: message.isError ? '#681c1c' : '#4BB543' }
+                                ]}
+                                >
+                                    {message.message}
+                                </Text>
+                                :
+                                null
+                            }
+
+                            <Title style={styles.titleStyling}>Enter Your Username To Get New Password</Title>
 
 
-                {/**************************************/}
-                {/* RESET PASSWORD BUTTON */}
-                {/**************************************/}
 
-                <MyButton
-                    buttonName="Reset Password"
-                    buttonMode="contained"
-                    buttonIcon="lock-reset"
-                    buttonWidth={250}
-                    buttonDisabled={message.disableButton}
-                    onPress={handleResetPasswordButton}
-                />
-                {/* </Form> */}
-            </View>
+                            {/* <Form method="POST" onSubmit={handleFormSubmit}> */}
+                            {/**************************************/}
+                            {/* UserName Field */}
+                            {/**************************************/}
+
+                            <MyTextInput
+                                textInputMode="contained"
+                                textInputLabel="USERNAME"
+                                getText={userName}
+                                autoFocus={true}
+                                backgroundColor="transparent"
+                                textInputWidth='90%'
+                                textInputPlaceHolder="Enter Username"
+                                setText={(text) => getInputTextUserName(text)}
+                                textInputMarginBottom={0.1}
+                                isError={showErrorUserName}
+                                onFocus={handleOnFocusUserName}
+                                onBlur={handleOnFocusUserName}
+                            />
 
 
-            {/**************************************/}
-            {/* EMPTY VIEW */}
-            {/**************************************/}
 
-            <View></View>
+                            {/**************************************/}
+                            {/* HELPER TEXT FOR USERNAME FIELD */}
+                            {/**************************************/}
 
-        </SafeAreaView >
+
+
+                            <View style={{ width: '90%' }}>
+                                <HelperText
+                                    type="error"
+                                    visible={showErrorUserName}
+                                    style={styles.helperTextStyling}
+                                >
+                                    {errorMessageUserName}
+                                </HelperText>
+                            </View>
+
+
+
+                            {/**************************************/}
+                            {/* RESET PASSWORD BUTTON */}
+                            {/**************************************/}
+                            <View style={{zIndex: 1, width: '90%', borderColor: 'blue', borderWidth: 1}}>
+                                <MyButton
+                                    buttonName="Reset Password"
+                                    buttonMode="contained"
+                                    buttonIcon="lock-reset"
+                                    buttonWidth='100%'
+                                    buttonDisabled={message.disableButton}
+                                    onPress={handleResetPasswordButton}
+                                />
+                            </View>
+                        </ImageBackground>
+                    </View>
+                </View>
+            </KeyboardAvoidingView >
+        </>
     );
 }
 
 export default ForgotPassword;
 
 const styles = StyleSheet.create({
+    headerView: {
+        padding: 10,
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    headerText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        color: '#ffffff'
+    },
+    contentView: {
+        flex: 1,
+        overflow: 'hidden',
+        backgroundColor: '#ffffff',
+        borderTopLeftRadius: 80,
+        borderRadius: 20
+    },
+    imageBackground: {
+        flex: 1,
+        height: null,
+        width: null,
+        paddingVertical: '4%',
+        paddingHorizontal: '6%',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
     titleStyling: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
         color: commonStyles.primaryColor.backgroundColor,
-        marginBottom: 20,
+        marginBottom: 10,
         fontFamily: "Roboto",
+        textAlign: 'center'
     },
     forgotPasswordButton: {
         fontSize: 15,
@@ -215,7 +244,8 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: "red",
         fontWeight: "bold",
-        marginBottom: 8
+        marginBottom: 8,
+        paddingHorizontal: 0,
     },
     responseMessageStyling: {
         marginBottom: 20,

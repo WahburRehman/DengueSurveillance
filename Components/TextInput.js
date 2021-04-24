@@ -12,6 +12,7 @@ const MyTextInput = (props) => {
             mode={props.textInputMode}
             label={props.textInputLabel}
             value={props.getText}
+            maxLength={props.maxLength}
             placeholder={props.textInputPlaceHolder}
             placeholderTextColor={commonStyles.placeHolderColor.color}
             onChangeText={(text) => props.setText(text)}
@@ -26,11 +27,10 @@ const MyTextInput = (props) => {
                 width: props.textInputWidth ? props.textInputWidth : 290,
                 marginBottom: props.textInputMarginBottom ? props.textInputMarginBottom : 15,
                 fontSize: 18,
-                backgroundColor: "#ffffff",
                 borderBottomColor: props.isError ? 'red' : "#4169e1",
                 borderBottomWidth: props.textInputMode === 'contained' ? 1 : 0,
                 position: 'relative',
-                zIndex: -1,
+                zIndex: 1,
                 backgroundColor: props.backgroundColor,
                 paddingHorizontal: 0
             }}

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Animated from 'react-native-reanimated';
 import BottomSheet from 'reanimated-bottom-sheet';
 import ImagePicker from 'react-native-image-crop-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     View,
     Text,
@@ -28,15 +30,20 @@ import Icon from 'react-native-vector-icons/Ionicons';
 //COMPONENTS
 import MyButton from '../Components/Button';
 
+//ACTIONS
+import * as actions from '../Redux/Actions/actions';
+
 const UpdateProfile = (props) => {
 
-    const { userID, email, contactNo, dp } = props.route.params;
+    const dispatch = useDispatch();
+    const userInfo = useSelector(state => state.userInfo);
+    // console.log('user info: ', userInfo);
 
     const bs = React.createRef();
     const fall = new Animated.Value(1);
 
     // const passwordRegex = new RegExp("^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$");
-    const contactNoRegex = new RegExp("^0[0-9]{2}[0-9]{7}$|^03[0-9]{2}[0-9]{7}$");
+    const contactNoRegex = new RegExp("^03[0-9]{2}[0-9]{7}$");
     const emailRegex = new RegExp("^[a-zA-Z0-9.!#$%&' * +/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$");
 
     const [showSnackbar, setShowSnackbar] = useState(false);
@@ -96,11 +103,11 @@ const UpdateProfile = (props) => {
             setErrorMessage(prevState => { return { ...prevState, email: 'invalid Format' } })
             setShowError(prevState => { return { ...prevState, email: true } })
         }
-        if (data.contactNo && !contactNoRegex.test(data.contactNo)) {
+        else if (data.contactNo && !contactNoRegex.test(data.contactNo)) {
             setErrorMessage(prevState => { return { ...prevState, contactNo: 'invalid Format' } })
             setShowError(prevState => { return { ...prevState, contactNo: true } })
         }
-        if (data.password && !data.password.length < 8) {
+        else if (data.password && !data.password.length < 8) {
             setErrorMessage(prevState => { return { ...prevState, password: 'minimum 8 characters required' } })
             setShowError(prevState => { return { ...prevState, password: true } });
             if (data.confirmPassword !== data.password || data.confirmPassword.length < 8) {
@@ -126,11 +133,11 @@ const UpdateProfile = (props) => {
                 })
             }
             else {
-                if (data.email === email) {
+                if (data.email === userInfo.email) {
                     setErrorMessage(prevState => { return { ...prevState, email: 'Same As current email' } })
                     setShowError(prevState => { return { ...prevState, email: true } })
                 }
-                if (data.contactNo === contactNo) {
+                if (data.contactNo === userInfo.contactNo) {
                     setErrorMessage(prevState => { return { ...prevState, contactNo: 'Same As current Number' } })
                     setShowError(prevState => { return { ...prevState, contactNo: true } })
                 }
@@ -138,7 +145,7 @@ const UpdateProfile = (props) => {
                     if (data.dp) {
                         console.log('data.dp is true');
                         const formData = new FormData();
-                        formData.append("id", userID);
+                        formData.append("id", userInfo._id);
                         data.email ? formData.append("email", data.email) : null;
                         data.contactNo ? formData.append("contactNo", data.contactNo) : null;
                         data.password ? formData.append("password", data.password) : null;
@@ -158,8 +165,11 @@ const UpdateProfile = (props) => {
                                     setShowSnackbar(true);
                                 } else {
                                     console.log('data message: ', data.message)
+                                    console.log('updated data: ', data);
                                     setServerResponse(data.message);
                                     setShowSnackbar(true);
+                                    dispatch(actions.updateUserInfo(data.data));
+                                    storeUpdatedDataLocally(data.data);
                                     resetStates();
                                 }
                             }).catch(error => {
@@ -171,7 +181,7 @@ const UpdateProfile = (props) => {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                id: userID,
+                                id: userInfo._id,
                                 email: data.email ? data.email : null,
                                 contactNo: data.contactNo !== '' ? data.contactNo : null,
                                 password: data.password !== '' ? data.password : null,
@@ -183,10 +193,12 @@ const UpdateProfile = (props) => {
                                     setServerResponse(data.error);
                                     setShowSnackbar(true);
                                 } else {
-                                    console.log(data.message);
                                     setServerResponse(data.message);
                                     setShowSnackbar(true);
+                                    dispatch(actions.updateUserInfo(data.data));
+                                    storeUpdatedDataLocally(data.data);
                                     resetStates();
+
                                 }
                             }).catch(error => {
                                 console.log('catch error: ', error);
@@ -194,6 +206,14 @@ const UpdateProfile = (props) => {
                     }
                 }
             }
+        }
+    }
+
+    const storeUpdatedDataLocally = async data => {
+        try {
+            await AsyncStorage.setItem('userInfoLocal', JSON.stringify(data));
+        } catch (error) {
+            console.log(error);
         }
     }
 
@@ -391,7 +411,7 @@ const UpdateProfile = (props) => {
                                         mode='contained'
                                         label="CONTACT NO"
                                         value={data.contactNo}
-                                        placeholder="061-1234567 OR 0300-1234567"
+                                        placeholder="03001234567"
                                         onChangeText={(text) => getInputText(text, 'contactNo')}
                                         error={showError.email}
                                         style={styles.textInput}

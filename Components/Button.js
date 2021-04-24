@@ -20,10 +20,12 @@ const MyButton = (props) => (
             width: props.buttonWidth ? props.buttonWidth : 250,
             // position: '',
             zIndex: -1,
+            backgroundColor: '#4169e1',
             marginBottom: props.marginBottom
 
         }}
         labelStyle={styles.buttonLabelStyling}
+        
     >
         {props.buttonName}
     </Button>

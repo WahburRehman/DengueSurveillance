@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, SafeAreaView, Dimensions, StyleSheet, Button } from 'react-native';
-import { Title } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../Redux/Actions/actions';
 
 //COMPONENTS
 import Header from '../Components/Header';
@@ -13,19 +14,24 @@ import commonStyles from '../StyleSheets/StyleSheet';
 //SCREEN WIDTH
 const screenWidth = Dimensions.get('window').width;
 
-const Home = ({ navigation }) => {
+const Home = (props) => {
 
+    const dispatch = useDispatch();
+    const state = useSelector(state => state);
+    // console.log('state: ', state);
 
     const navigateTo = (screen) => {
         console.log('called navigato to')
-        navigation.navigate(screen);
+        props.navigation.navigate(screen);
     }
 
     const handleLogOutButton = async () => {
         console.log('??')
         try {
-            await AsyncStorage.removeItem('userToken');
+            await AsyncStorage.removeItem('userInfoLocal');
             console.log("key Removed!!");
+            dispatch(actions.changeLoginStatus(false));
+
         } catch (error) {
             console.log('remove Key Error: ', error);
         }
@@ -75,7 +81,7 @@ const Home = ({ navigation }) => {
                     iconName="search"
                     iconColor={commonStyles.cardButtonIconColor.color}
                     goTo={() => navigateTo('allRequests')}
-                    
+
                 />
             </View>
 
@@ -84,13 +90,14 @@ const Home = ({ navigation }) => {
                     cardButtonName="Campaign Msg"
                     iconName="chatbox-ellipses"
                     iconColor={commonStyles.cardButtonIconColor.color}
+                     goTo={() => navigateTo('sendSms')}
                 />
                 <CardButton
                     cardButtonName="Complaints"
                     iconName="sad-outline"
                     iconColor={commonStyles.cardButtonIconColor.color}
                     goTo={() => navigateTo('allComplaints')}
-                    
+
                 />
             </View>
 
@@ -104,6 +111,13 @@ const Home = ({ navigation }) => {
         </SafeAreaView >
     );
 }
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        changeLoginStatus: (login) => dispatch(actions.changeLoginStatus(login))
+    }
+}
+
 
 export default Home;
 

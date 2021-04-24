@@ -22,6 +22,7 @@
     "npm": "^7.6.0",
     "react": "16.13.1",
     "react-native": "0.63.4",
+    "react-native-contacts": "^7.0.0",
     "react-native-dropdown-picker": "^4.0.2",
     "react-native-elements": "^3.3.2",
     "react-native-gesture-handler": "^1.10.3",
@@ -30,9 +31,13 @@
     "react-native-reanimated": "^1.13.3",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "^2.18.0",
+    "react-native-spinkit": "^1.5.1",
     "react-native-tab-view": "^2.15.2",
     "react-native-vector-icons": "^8.1.0",
-    "reanimated-bottom-sheet": "*"
+    "react-redux": "^7.2.3",
+    "reanimated-bottom-sheet": "*",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
