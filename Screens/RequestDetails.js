@@ -75,14 +75,9 @@ const RequestDetails = (props) => {
     const handleDeleteButton = () => {
         console.log('delete button');
         setLoadingValues({ isLoading: true, backgroundOpactiy: 0.5 });
-        fetch('http://10.0.2.2:3000/deleteOneRequest', {
+        fetch(`http://10.0.2.2:3000/deleteOneRequest?id=${id}&role=healthWorker`, {
             method: "DELETE",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'id': id,
-            })
+            headers: { 'Authorization': "Bearer " + userInfo.authToken }
         }).then(res => res.json())
             .then((data) => {
                 setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
@@ -191,12 +186,6 @@ const RequestDetails = (props) => {
             <Snackbar
                 visible={showSnackbar}
                 onDismiss={() => setShowSnackbar(false)}
-                // action={{
-                //     label: 'Undo',
-                //     onPress: () => {
-                //         // Do something
-                //     },
-                // }}
                 duration={2000}
 
                 style={{

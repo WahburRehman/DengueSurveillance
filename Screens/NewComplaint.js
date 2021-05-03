@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
-
+import Spinner from 'react-native-spinkit';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../Redux/Actions/actions';
 import {
     View,
     StyleSheet,
@@ -40,12 +42,21 @@ const NewComplaint = (props) => {
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [serverResponse, setServerResponse] = useState('');
 
+    const dispatch = useDispatch();
+    const userInfo = useSelector(state => state.userInfo);
+
+    const [loadingValues, setLoadingValues] = useState({
+        isLoading: false,
+        backgroundOpactiy: 1
+    });
+
     const [complaint, setComplaint] = useState({
         subject: '',
         message: '',
-        complainantName: 'WAHB UR REHMAN',
-        complainantID: '605915ef97ab942584075529',
+        complainantName: userInfo.name,
+        complainantID: userInfo._id,
         complaintStatus: 'pending',
+        complainantRole: 'healthWorker',
         date: date
     });
 
@@ -91,28 +102,30 @@ const NewComplaint = (props) => {
         });
     }
 
-    const handleComplaintButton = () => {
+    const handleComplaintButton = async () => {
         console.log('data button')
         if (!complaint.subject) {
-            setShowError(prevState => { return { ...prevState, subject: true } });
+            setShowError({ showError, subject: true });
         }
 
         if (!complaint.message) {
-            setShowError(prevState => { return { ...prevState, message: true } });
+            setShowError({ ...showError, message: true });
         }
         else {
-            console.log(complaint)
-            fetch('http://10.0.2.2:3000/addReport', {
+            Keyboard.dismiss();
+            setLoadingValues({ isLoading: true, backgroundOpactiy: 0.4 });
+            await fetch(`http://10.0.2.2:3000/addReport?role=healthWorker`, {
                 method: "POST",
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer " + userInfo.authToken
                 },
                 body: JSON.stringify({
                     'subject': complaint.subject,
                     'reportMessage': complaint.message,
                     'reporterName': complaint.complainantName,
                     'reporterID': complaint.complainantID,
-                    'reporterRole': 'healthWorker',
+                    'reporterRole': complaint.complainantRole,
                     'reportStatus': complaint.complaintStatus,
                     'reportDate': complaint.date,
                 })
@@ -123,14 +136,14 @@ const NewComplaint = (props) => {
                         console.log(data.error)
                         setShowSnackbar(true);
                         setServerResponse(data.error);
+                        setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
                     }
                     else if (data.message) {
                         console.log(data.message);
-
-                        Keyboard.dismiss()
+                        setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
                         setShowSnackbar(true);
                         setServerResponse(data.message);
-
+                        dispatch(actions.addNewComplaint(complaint));
                         setButton(prevState => {
                             return {
                                 ...prevState,
@@ -140,35 +153,25 @@ const NewComplaint = (props) => {
                             }
                         });
 
-                        setComplaint(prevState => {
-                            return {
-                                ...prevState,
-                                subject: '',
-                                message: '',
-                            }
+                        setComplaint({
+                            ...complaint,
+                            subject: '',
+                            message: '',
                         });
-
-                        setShowError(prevState => {
-                            return {
-                                ...prevState,
-                                subject: false,
-                                message: false,
-                            }
-                        })
                     }
                 }).catch(error => {
                     console.log(error);
-                })
+                });
         }
     }
 
     const handleMessageFocus = () => {
-        setShowError(prevState => { return { ...prevState, message: false, isFocused: false } })
+        setShowError({ ...showError, message: false, isFocused: false });
         setBgColor('#FFE7F5');
     }
 
     const handleMessageBlur = () => {
-        setShowError(prevState => { return { ...prevState, message: false, isFocused: false } })
+        setShowError({ ...showError, message: false, isFocused: false });
         setBgColor('#FFE7F5');
     }
 
@@ -176,10 +179,17 @@ const NewComplaint = (props) => {
     return (
         <>
             <View style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
+                {loadingValues.isLoading && < Spinner style={{
+                    position: 'absolute',
+                    zIndex: 1,
+                    left: '44%',
+                    top: '50%'
+                }} size={70} color="blue" type="ThreeBounce" />}
                 <View style={styles.headerView}>
                     <TouchableOpacity
                         style={styles.iconView}
                         activeOpacity={0.5}
+                        onLongPress={() => props.navigation.navigate('home')}
                         onPress={() => props.navigation.navigate('allComplaints')}
                     >
                         <Icon name="arrow-back" size={30} color="#ffffff" />
@@ -191,18 +201,16 @@ const NewComplaint = (props) => {
                     </View>
                 </View>
 
-                <View
-                    style={{
-                        ...styles.contentView,
-                    }}
-                >
+                <View style={styles.contentView}>
                     <View style={{ ...StyleSheet.absoluteFill }} >
                         <ImageBackground
                             source={require('../Images/bg0.jpg')}
-                            style={styles.imageBackground}
+                            style={{
+                                ...styles.imageBackground,
+                                opacity: loadingValues.backgroundOpactiy
+                            }}
                         >
                             <KeyboardAvoidingView>
-
 
                                 {/**************************************/}
                                 {/* complaint SUBJECT FIELD */}

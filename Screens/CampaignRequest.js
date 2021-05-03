@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
+import Spinner from 'react-native-spinkit';
+import { useSelector, useDispatch } from 'react-redux';
 
 import {
     View,
@@ -17,6 +19,9 @@ import {
     TextInput,
     Snackbar,
 } from 'react-native-paper';
+
+//ACTIONS
+import * as actions from '../Redux/Actions/actions';
 
 //STYLESHEET
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -40,12 +45,15 @@ const CampaignRequest = (props) => {
     const [showSnackbar, setShowSnackbar] = useState(false);
     const [serverResponse, setServerResponse] = useState('');
 
+    const dispatch = useDispatch();
+    const userInfo = useSelector(state => state.userInfo);
+
     const [request, setRequest] = useState({
         subject: '',
         message: '',
-        requesterName: 'WAHB UR REHMAN',
-        requesterID: '605915ef97ab942584075529',
-        requestStatus: 'not viewed',
+        requesterName: userInfo.name,
+        requesterID: userInfo._id,
+        requestStatus: 'pending',
         date: date
     });
 
@@ -63,7 +71,12 @@ const CampaignRequest = (props) => {
         label: 'request',
         icon: 'send',
         disable: false
-    })
+    });
+
+    const [loadingValues, setLoadingValues] = useState({
+        isLoading: false,
+        backgroundOpactiy: 1
+    });
 
     // FUNCTION TO GET INPUT TEXT OF FIELD
 
@@ -91,7 +104,7 @@ const CampaignRequest = (props) => {
         });
     }
 
-    const handleRequestButton = () => {
+    const handleRequestButton = async () => {
         console.log('data button')
         if (!request.subject) {
             setShowError(prevState => { return { ...prevState, subject: true } });
@@ -102,11 +115,13 @@ const CampaignRequest = (props) => {
             setShowError(prevState => { return { ...prevState, message: true } });
         }
         else {
-            console.log(request)
-            fetch('http://10.0.2.2:3000/addRequest', {
+            Keyboard.dismiss();
+            setLoadingValues({ isLoading: true, backgroundOpactiy: 0.4 });
+            await fetch(`http://10.0.2.2:3000/addRequest`, {
                 method: "POST",
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer " + userInfo.authToken
                 },
                 body: JSON.stringify({
                     'subject': request.subject,
@@ -120,66 +135,59 @@ const CampaignRequest = (props) => {
                 .then(res => res.json())
                 .then((data) => {
                     if (data.error) {
-                        console.log(data.error)
-                        setShowSnackbar(true);
+                        console.log(data.error);
                         setServerResponse(data.error);
                     }
                     else if (data.message) {
                         console.log(data.message);
-
-                        Keyboard.dismiss();
-                        setShowSnackbar(true);
+                        dispatch(actions.addNewRequest(request));
                         setServerResponse(data.message);
 
-                        setButton(prevState => {
-                            return {
-                                ...prevState,
-                                label: 'Request Sent',
-                                icon: 'check',
-                                disable: true
-                            }
+                        setButton({
+                            label: 'Request Sent',
+                            icon: 'check',
+                            disable: true
                         });
 
-                        setRequest(prevState => {
-                            return {
-                                ...prevState,
-                                subject: '',
-                                message: '',
-                            }
+                        setRequest({
+                            ...request,
+                            subject: '',
+                            message: '',
                         });
-
-                        setShowError(prevState => {
-                            return {
-                                ...prevState,
-                                subject: false,
-                                message: false,
-                            }
-                        })
                     }
                 }).catch(error => {
                     console.log(error);
-                })
+                });
+            setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
+            setShowSnackbar(true);
         }
     }
 
     const handleMessageFocus = () => {
-        setShowError(prevState => { return { ...prevState, message: false, isFocused: false } })
+        setShowError({ ...showError, message: false, isFocused: false });
         setBgColor('#FFE7F5');
     }
 
     const handleMessageBlur = () => {
-        setShowError(prevState => { return { ...prevState, message: false, isFocused: false } })
+        setShowError({ ...showError, message: false, isFocused: false });
         setBgColor('#FFE7F5');
     }
 
     return (
         <>
             <View style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
+                {loadingValues.isLoading && < Spinner style={{
+                    position: 'absolute',
+                    zIndex: 1,
+                    left: '44%',
+                    top: '50%'
+                }} size={70} color="blue" type="Circle" />}
                 <View style={styles.headerView}>
                     <TouchableOpacity
                         style={styles.iconView}
                         activeOpacity={0.5}
-                        onPress={() => props.navigation.navigate('home')}
+                        onLongPress={() => props.navigation.navigate('home')}
+                        onPress={() => props.navigation.navigate('allRequests')}
                     >
                         <Icon name="arrow-back" size={30} color="#ffffff" />
                     </TouchableOpacity>
@@ -190,15 +198,14 @@ const CampaignRequest = (props) => {
                     </View>
                 </View>
 
-                <View
-                    style={{
-                        ...styles.contentView,
-                    }}
-                >
+                <View style={styles.contentView} >
                     <View style={{ ...StyleSheet.absoluteFill }} >
                         <ImageBackground
                             source={require('../Images/bg0.jpg')}
-                            style={styles.imageBackground}
+                            style={{
+                                ...styles.imageBackground,
+                                opacity: loadingValues.backgroundOpactiy
+                            }}
                         >
                             <KeyboardAvoidingView>
 
@@ -369,7 +376,7 @@ const styles = StyleSheet.create({
         width: textInputWidth,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        
+
     },
     helperTextStyling: {
         fontSize: 11,

@@ -22,6 +22,7 @@ import AllComplaints from '../Screens/AllComplaints';
 import UpdateProfile from '../Screens/UpdateProfile';
 import RequestDetails from '../Screens/RequestDetails';
 import ForgotPassword from '../Screens/ForgotPassword';
+import PatientDetails from '../Screens/PatientDetails';
 import CampaignRequest from '../Screens/CampaignRequest';
 import AddPatientOnline from '../Screens/AddPatientOnline';
 import AddPatientOffline from '../Screens/AddPatientOffline';
@@ -138,6 +139,14 @@ const StackNavigator = (props) => {
                                 <Stack.Screen
                                     name="viewPatients"
                                     component={ViewPatients}
+                                    options={{
+                                        headerShown: false
+                                    }}
+                                />
+
+                                <Stack.Screen
+                                    name="patientDetails"
+                                    component={PatientDetails}
                                     options={{
                                         headerShown: false
                                     }}

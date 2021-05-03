@@ -59,7 +59,10 @@ const ForgotPassword = (props) => {
         else {
             fetch('http://10.0.2.2:3000/resetPassword', {
                 method: "POST",
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer " + userInfo.authToken
+                },
                 body: JSON.stringify({
                     actor: 'healthWorker',
                     userName: userName
@@ -176,7 +179,7 @@ const ForgotPassword = (props) => {
                             {/**************************************/}
                             {/* RESET PASSWORD BUTTON */}
                             {/**************************************/}
-                            <View style={{zIndex: 1, width: '90%', borderColor: 'blue', borderWidth: 1}}>
+                            <View style={{ zIndex: 1, width: '90%', borderColor: 'blue', borderWidth: 1 }}>
                                 <MyButton
                                     buttonName="Reset Password"
                                     buttonMode="contained"

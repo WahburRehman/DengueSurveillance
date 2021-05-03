@@ -179,7 +179,10 @@ const UpdateProfile = (props) => {
                     else {
                         fetch('http://10.0.2.2:3000/updateHealthWorkerProfile', {
                             method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': "Bearer " + userInfo.authToken
+                            },
                             body: JSON.stringify({
                                 id: userInfo._id,
                                 email: data.email ? data.email : null,

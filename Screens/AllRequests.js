@@ -16,7 +16,6 @@ import { useSelector, useDispatch } from 'react-redux';
 //ACTIONS
 import * as actions from '../Redux/Actions/actions';
 
-
 //STYLESHEET
 import commonStyles from '../StyleSheets/StyleSheet';
 
@@ -41,18 +40,18 @@ const AllRequests = (props) => {
     });
 
     useEffect(() => {
-        fetch('http://10.0.2.2:3000/fetchSpecificRequests', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'requesterID': userInfo._id,
-            })
+        fetch(`http://10.0.2.2:3000/fetchSpecificRequests?requesterID=${userInfo._id}`, {
+            headers: { 'Authorization': "Bearer " + userInfo.authToken }
         })
             .then(result => result.json())
             .then(data => {
-                dispatch(actions.storeRequests(data));
+                if (data.error) {
+                    console.log(data.error);
+                } else if (data.message) {
+                    console.log(data.message);
+                } else {
+                    dispatch(actions.storeRequests(data));
+                }
             });
         setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
         setIsLoading(false);
@@ -126,7 +125,7 @@ const AllRequests = (props) => {
                         {loadingValues.isLoading && < Spinner style={{
                             position: 'absolute',
                             zIndex: 1,
-                            left: '46%',
+                            left: '44%',
                             top: '50%'
                         }} size={70} color="blue" type="Circle" />}
 
@@ -145,11 +144,10 @@ const AllRequests = (props) => {
                                 <TouchableOpacity
                                     style={styles.iconView}
                                     activeOpacity={0.5}
-                                    onPress={handleRefreshButton}
+                                    onPress={() => props.navigation.navigate('campaignRequest')}
                                 >
-                                    <Icon name="refresh" size={30} color="#ffffff" />
+                                    <Icon name="add" size={30} color="#ffffff" />
                                 </TouchableOpacity>
-
                             </View>
                         </View>
 
@@ -157,23 +155,47 @@ const AllRequests = (props) => {
                             <View style={{ ...StyleSheet.absoluteFill }} >
                                 <ImageBackground
                                     source={require('../Images/bg0.jpg')}
-                                    style={{ ...styles.imageBackground, opacity: loadingValues.backgroundOpactiy }}
+                                    style={{
+                                        ...styles.imageBackground,
+                                        opacity: loadingValues.backgroundOpactiy
+                                    }}
                                 >
-                                    <DropDownList
-                                        dropDownItems={[
-                                            { label: 'all', value: 'all' },
-                                            { label: 'pending', value: 'pending' },
-                                            { label: 'resolved', value: 'resolved' },
-                                        ]}
-                                        dropDownDefaultValue={selectedValue}
-                                        dropDownWidth={'90%'}
-                                        dropDownOnChangeItem={item => handleDropDownChange(item.value)}
-                                    />
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        width: '100%',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        paddingLeft: 15
+                                    }}>
+                                        <DropDownList
+                                            dropDownItems={[
+                                                { label: 'all', value: 'all' },
+                                                { label: 'pending', value: 'pending' },
+                                                { label: 'resolved', value: 'resolved' },
+                                            ]}
+                                            dropDownDefaultValue={selectedValue}
+                                            dropDownWidth={'85%'}
+                                            dropDownBackgroundColor={commonStyles.textInputColor.color}
+                                            dropDownOnChangeItem={item => handleDropDownChange(item.value)}
+                                        />
+
+                                        <View style={styles.iconView}>
+                                            <TouchableOpacity
+                                                style={styles.iconView}
+                                                activeOpacity={0.5}
+                                                onPress={handleRefreshButton}
+                                            >
+                                                <Icon name="refresh" size={35} color="#4169e1" />
+                                            </TouchableOpacity>
+
+                                        </View>
+                                    </View>
 
                                     <FlatList
                                         keyExtractor={keyExtractor}
                                         data={displayData()}
                                         renderItem={renderItem}
+                                        showsVerticalScrollIndicator={false}
                                         ItemSeparatorComponent={renderSeparator}
                                         containerStyle={{ borderBottomWidth: 0 }}
                                         style={{ backgroundColor: 'transparent', width: '100%' }}

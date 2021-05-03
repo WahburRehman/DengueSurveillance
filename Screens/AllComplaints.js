@@ -43,18 +43,18 @@ const AllComplaints = (props) => {
     });
 
     useEffect(() => {
-        fetch('http://10.0.2.2:3000/fetchSpecificReports', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'reporterID': userInfo._id,
-            })
+        fetch(`http://10.0.2.2:3000/fetchSpecificReports?reporterID=${userInfo._id}&role=healthWorker`, {
+            headers: { 'Authorization': "Bearer " + userInfo.authToken }
         })
             .then(result => result.json())
             .then(data => {
-                dispatch(actions.storeComplaints(data));
+                if (data.error) {
+                    console.log(data.error);
+                } else if (data.message) {
+                    console.log(data.message);
+                } else {
+                    dispatch(actions.storeComplaints(data));
+                }
             });
         setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
         setIsLoading(false);
@@ -101,6 +101,11 @@ const AllComplaints = (props) => {
         setSelectedValue(value);
     }
 
+    useEffect(() => {
+        console.log('??')
+        displayData();
+    }, [selectedValue, complaints]);
+
     const displayData = () => {
         if (selectedValue === 'all') {
             return complaints
@@ -126,7 +131,7 @@ const AllComplaints = (props) => {
                         {loadingValues.isLoading && < Spinner style={{
                             position: 'absolute',
                             zIndex: 1,
-                            left: '46%',
+                            left: '44%',
                             top: '50%'
                         }} size={70} color="blue" type="ThreeBounce" />}
 
@@ -149,7 +154,6 @@ const AllComplaints = (props) => {
                                 >
                                     <Icon name="add" size={30} color="#ffffff" />
                                 </TouchableOpacity>
-
                             </View>
                         </View>
 
@@ -198,6 +202,7 @@ const AllComplaints = (props) => {
                                         keyExtractor={keyExtractor}
                                         data={displayData()}
                                         renderItem={renderItem}
+                                        showsVerticalScrollIndicator={false}
                                         ItemSeparatorComponent={renderSeparator}
                                         containerStyle={{ borderBottomWidth: 0 }}
                                         style={{ backgroundColor: 'transparent', width: '100%' }}

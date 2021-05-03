@@ -7,6 +7,9 @@ export default patientsReducer = (state = [], action) => {
             return state.filter(item => {
                 return item._id !== action.payload
             });
+        case 'addNewPatient':
+            state.unshift(action.payload);
+            return state
         default: return state
     }
 }

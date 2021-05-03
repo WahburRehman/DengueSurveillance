@@ -34,14 +34,11 @@ const ViewPatients = (props) => {
 
     const [refresh, setRefresh] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedValue, setSelectedValue] = useState('all');
+    const [selectedValue, setSelectedValue] = useState('newForHealthWorker');
 
     const dispatch = useDispatch();
     const userInfo = useSelector(state => state.userInfo);
     const patients = useSelector(state => state.patients);
-    console.log('all patients: ', patients.length)
-
-    const [deletePateint, setDeletePateint] = useState(false);
 
     const [loadingValues, setLoadingValues] = useState({
         isLoading: false,
@@ -49,26 +46,26 @@ const ViewPatients = (props) => {
     });
 
     useEffect(() => {
-        fetch('http://10.0.2.2:3000/fetchAllPatients', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'recommendedBy': userInfo._id,
-            })
+        fetch(`http://10.0.2.2:3000/fetchAllPatients?recommendedBy=${userInfo._id}`, {
+            headers: { 'Authorization': "Bearer " + userInfo.authToken },
         })
             .then(result => result.json())
             .then(data => {
-                dispatch(actions.storePatients(data));
+                if (data.error) {
+                    console.log(data.error);
+                } else {
+                    console.log(data.length)
+
+                    dispatch(actions.storePatients(data));
+                }
             });
         setIsLoading(false);
         setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
     }, [refresh]);
 
-    const handleItemPress = (id) => {
-        console.log(id);
-        deletePateint ? setDeletePateint(false) : null
+    const handleItemPress = (patientInfo) => {
+        console.log(patientInfo);
+        props.navigation.navigate('patientDetails', { patientInfo })
     }
 
     const handleItemLongPress = (id) => {
@@ -82,8 +79,8 @@ const ViewPatients = (props) => {
         <ListItem
             bottomDivider
             underlayColor="lightgrey"
-            onPress={() => handleItemPress(item._id)}
-            onLongPress={() => handleItemLongPress(item._id)}
+            onPress={() => handleItemPress(item)}
+            // onLongPress={() => handleItemLongPress(item._id)}
             containerStyle={{ backgroundColor: 'transparent', marginBottom: 5, borderColor: 'transparent' }}
         >
             <ListItem.Content>
@@ -115,7 +112,12 @@ const ViewPatients = (props) => {
     }
 
     const displayData = () => {
-        if (selectedValue === 'all') {
+        if (selectedValue === 'newForHealthWorker') {
+            return patients.filter(item => {
+                return item.caseStatus === selectedValue
+            });
+        }
+        else if (selectedValue === 'all') {
             return patients
         }
         else {
@@ -140,9 +142,9 @@ const ViewPatients = (props) => {
                         {loadingValues.isLoading && < Spinner style={{
                             position: 'absolute',
                             zIndex: 1,
-                            left: '46%',
+                            left: '44%',
                             top: '50%'
-                        }} size={70} color="blue" type="Circle" />}
+                        }} size={70} color="blue" type="ThreeBounce" />}
 
                         <View style={styles.headerView}>
                             <TouchableOpacity
@@ -153,21 +155,16 @@ const ViewPatients = (props) => {
                                 <Icon name="arrow-back" size={30} color="#ffffff" />
                             </TouchableOpacity>
 
-                            <Text style={styles.headerText}>All Requests</Text>
+                            <Text style={styles.headerText}>All Patients</Text>
 
                             <View style={styles.iconView}>
                                 <TouchableOpacity
                                     style={styles.iconView}
                                     activeOpacity={0.5}
-                                    onPress={handleRefreshButton}
+                                    onPress={() => props.navigation.navigate('selectAddPatient', { from: 'viewPatients' })}
                                 >
-                                    {deletePateint ?
-                                        <MaterialCommunityIcons name="delete-empty" size={30} color="#ffffff" />
-                                        :
-                                        <Icon name="refresh" size={30} color="#ffffff" />
-                                    }
+                                    <Icon name="add" size={30} color="#ffffff" />
                                 </TouchableOpacity>
-
                             </View>
                         </View>
 
@@ -177,23 +174,44 @@ const ViewPatients = (props) => {
                                     source={require('../Images/bg0.jpg')}
                                     style={{ ...styles.imageBackground, opacity: loadingValues.backgroundOpactiy }}
                                 >
-                                    <DropDownList
-                                        dropDownItems={[
-                                            { label: 'all', value: 'all' },
-                                            { label: 'negative', value: 'negative' },
-                                            { label: 'not confirmed', value: 'not confirmed' },
-                                            { label: 'positive', value: 'positive' },
-                                            { label: 'suspected', value: 'suspected' },
-                                        ]}
-                                        dropDownDefaultValue={selectedValue}
-                                        dropDownWidth={'90%'}
-                                        dropDownOnChangeItem={item => handleDropDownChange(item.value)}
-                                    />
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        width: '100%',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        paddingLeft: 15
+                                    }}>
+                                        <DropDownList
+                                            dropDownItems={[
+                                                { label: 'all', value: 'all' },
+                                                { label: 'new', value: 'newForHealthWorker' },
+                                                { label: 'negative', value: 'negative' },
+                                                { label: 'positive', value: 'positive' },
+                                                { label: 'suspected', value: 'suspected' },
+                                            ]}
+                                            dropDownDefaultValue={selectedValue}
+                                            dropDownWidth={'85%'}
+                                            dropDownBackgroundColor={commonStyles.textInputColor.color}
+                                            dropDownOnChangeItem={item => setSelectedValue(item.value)}
+                                        />
+
+                                        <View style={styles.iconView}>
+                                            <TouchableOpacity
+                                                style={styles.iconView}
+                                                activeOpacity={0.5}
+                                                onPress={handleRefreshButton}
+                                            >
+                                                <Icon name="refresh" size={35} color="#4169e1" />
+                                            </TouchableOpacity>
+
+                                        </View>
+                                    </View>
 
                                     <FlatList
                                         keyExtractor={keyExtractor}
                                         data={displayData()}
                                         renderItem={renderItem}
+                                        showsVerticalScrollIndicator={false}
                                         ItemSeparatorComponent={renderSeparator}
                                         containerStyle={{ borderBottomWidth: 0 }}
                                         style={{ backgroundColor: 'transparent', width: '100%' }}

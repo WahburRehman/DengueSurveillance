@@ -71,14 +71,9 @@ const ComplaintDetails = (props) => {
 
 
     const handleDeleteButton = () => {
-        fetch('http://10.0.2.2:3000/deleteOneReport', {
+        fetch(`http://10.0.2.2:3000/deleteOneReport?id=${id}&role=healthWorker`, {
             method: "DELETE",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'id': id,
-            })
+            headers: { 'Authorization': "Bearer " + userInfo.authToken }
         })
             .then(res => res.json())
             .then((data) => {

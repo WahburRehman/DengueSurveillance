@@ -153,8 +153,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
         borderTopLeftRadius: 80,
         borderRadius: 20
-    }
-    ,
+    },
     profile: {
         width: 90,
         height: 90,

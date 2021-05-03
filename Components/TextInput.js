@@ -23,6 +23,7 @@ const MyTextInput = (props) => {
             keyboardType={props.keyboardType}
             editable={props.editable}
             autoFocus={props.autoFocus}
+            maxLength={props.maxLength}
             style={{
                 width: props.textInputWidth ? props.textInputWidth : 290,
                 marginBottom: props.textInputMarginBottom ? props.textInputMarginBottom : 15,

@@ -22,6 +22,8 @@ import MyButton from '../Components/Button';
 
 
 const SelectAddPatient = (props) => {
+    const { from } = props.route.params;
+    console.log(from);
     return (
         <>
             <SafeAreaView style={{ flex: 1, backgroundColor: '#4169e1', padding: 5, paddingBottom: '2.5%' }}>
@@ -29,7 +31,8 @@ const SelectAddPatient = (props) => {
                     <TouchableOpacity
                         style={styles.iconView}
                         activeOpacity={0.5}
-                        onPress={() => props.navigation.navigate('home')}
+                        onPress={() => props.navigation.navigate(from)}
+                        onLongPress={() => props.navigation.navigate('home')}
                     >
                         <Icon name="arrow-back" size={30} color="#ffffff" />
                     </TouchableOpacity>

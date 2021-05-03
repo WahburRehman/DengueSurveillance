@@ -4,7 +4,8 @@ import { Chip } from 'react-native-paper';
 import Contacts from 'react-native-contacts';
 import { useSelector, useDispatch } from 'react-redux';
 import Spinner from 'react-native-spinkit';
-import { ListItem } from 'react-native-elements'
+import { ListItem } from 'react-native-elements';
+import { useNetInfo } from "@react-native-community/netinfo";
 import {
     View,
     StyleSheet,
@@ -14,12 +15,13 @@ import {
     ImageBackground,
     PermissionsAndroid,
     Modal,
-    FlatList
+    FlatList,
+    ScrollView,
+    Keyboard
 } from 'react-native';
 import {
-    Title,
-    Paragraph,
-    Snackbar
+    TextInput,
+    HelperText
 } from 'react-native-paper';
 
 //ACTIONS
@@ -31,21 +33,42 @@ import commonStyles from '../StyleSheets/StyleSheet';
 //ICON
 import Icon from 'react-native-vector-icons/Ionicons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 //COMPONENTS
 import MyButton from '../Components/Button';
 import MyTextInput from '../Components/TextInput';
+import { SafeAreaView } from 'react-native';
 
 //SCREEN WIDTH
 const { width, height } = Dimensions.get('window');
 
 const SendSms = (props) => {
 
-
-    const [create, setCreate] = useState([]);
+    const netInfo = useNetInfo();
+    console.log(netInfo);
     const [contacts, setContacts] = useState([]);
-    const [mobileNumber, setMobileNumber] = useState('');
-    console.log(create);
+    const [recipients, setRecipients] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [mobileNumber, setMobileNumber] = useState({
+        number: '',
+        errorMessage: 'Please Follow required format',
+        showError: false
+    });
+    const [gotContacts, setGotContacts] = useState(false);
+    console.log(recipients);
+
+    const [loadingValues, setLoadingValues] = useState({
+        isLoading: false,
+        backgroundOpactiy: 1
+    });
+
+    const [message, setMessage] = useState({
+        message: '',
+        bgColor: 'transparent',
+        error: 'This Should not be Empty!!',
+        showError: false
+    });
 
     const numberRegex = new RegExp('^03[0-9]{9}$');
 
@@ -59,54 +82,128 @@ const SendSms = (props) => {
         )
         if (per === 'granted') {
             Contacts.getAll().then(contacts => {
-                // console.log(contacts);
                 setContacts(contacts);
+                setGotContacts(true);
                 setShowModal(true);
-                // contacts.map(item => {
-                //     console.log(item.displayName);
-                //     console.log(item.phoneNumbers[0].number);
-                // })
             })
         } else {
             console.log('permission denied');
         }
     }
 
-    const createNumberChip = (number) => {
-        if (number) {
+    const checkNumberFormat = (number) => {
+        Keyboard.dismiss();
+        if (!numberRegex.test(number)) {
+            console.log('invalid format');
+            setMobileNumber({ ...mobileNumber, showError: true });
+        } else {
+            if (recipients.length > 9) {
+                alert("maximum 10 recipients can be selected");
+            } else {
+                setMobileNumber('');
+                setRecipients([...recipients, number]);
+            }
+        }
+    }
+
+    const addNumberToList = number => {
+        console.log(number);
+        if (recipients.length > 9) {
+            console.log('limit reached');
+        } else {
             if (!numberRegex.test(number)) {
                 console.log('invalid format')
             } else {
-                if (create.length < 3) {
-                    console.log(number);
-                    setMobileNumber('');
-                    setCreate([...create, number])
-                } else {
-                    console.log('limit reached')
-                }
-
+                setRecipients([...recipients, number])
             }
-        } else {
-            console.log('empty');
         }
-
     }
 
-    const removeNumberChip = chipIndex => {
-        setCreate(create.filter((item, index) => {
-            return index !== chipIndex
+    const removeNumberFromList = number => {
+        console.log('number: ', number)
+        // console.log(numberSelected[chipIndex]);
+        // setNumberSelected(numberSelected[chipIndex] = false)
+        setRecipients(recipients.filter((item, index) => {
+            console.log(item)
+            return item !== number
         }));
     }
 
-    const [showModal, setShowModal] = useState(false);
+    const handleMessageFocus = () => {
+        setMessage({
+            ...message,
+            showError: false,
+            bgColor: '#FFE7F5'
+        });
+    }
+
+    const handleMessageBlur = () => {
+        setMessage({
+            ...message,
+            showError: false,
+            bgColor: message.length ? '#FFE7F5' : 'transparent'
+        });
+    }
+
+    const handleSendMessage = () => {
+        if (!recipients.length) {
+            alert("Please Add Recipient(s)")
+        }
+        else if (!message.message) {
+            setMessage({ ...message, showError: true });
+        } else {
+            if (!netInfo.isConnected || !netInfo.isInternetReachable) {
+                alert('You are not connected to the internet');
+            } else {
+                setLoadingValues({ isLoading: true, backgroundOpactiy: 0.4 });
+                let newList = recipients.map(number => {
+                    if (number.startsWith("0")) {
+                        return number.replace("0", "+92")
+                    } else {
+                        return number;
+                    }
+                });
+                fetch('http://10.0.2.2:3000/sendSMS', {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': "Bearer " + userInfo.authToken
+                    },
+                    body: JSON.stringify({
+                        'recipients': newList,
+                        'campaignMessage': message.message
+                    })
+                })
+                    .then(res => res.json())
+                    .then((data) => {
+                        if (data.error) {
+                            console.log(data.error);
+                            // setShowSnackbar(true);
+                            // setServerResponse(data.error);
+                        }
+                        else if (data.message) {
+                            console.log(data.message);
+                        }
+                    }).catch(error => {
+                        console.log(error);
+                    }).finally(() => {
+                        setLoadingValues({ isLoading: true, backgroundOpactiy: 0.4 });
+                    });
+            }
+
+        }
+    }
+
+
+    //MODAL FUNCTIONS
 
     const keyExtractor = (item, index) => index.toString();
 
-    const renderItem = ({ item }) => (
+    const renderItem = ({ item, index }) => (
         <ListItem
             bottomDivider
             underlayColor="lightgrey"
-            onPress={() => createNumberChip(item.phoneNumbers[0].number)}
+            onPress={() => recipients.includes(item.phoneNumbers[0].number) ? removeNumberFromList(item.phoneNumbers[0].number) : addNumberToList(item.phoneNumbers[0].number)}
             containerStyle={{
                 backgroundColor: 'transparent',
                 borderColor: 'transparent',
@@ -114,14 +211,23 @@ const SendSms = (props) => {
                 paddingHorizontal: 0
             }}
         >
-            <ListItem.Content >
-                <View style={{ ...styles.ModalListTitleView, marginBottom: 5 }}>
-                    <Icon name="person" size={20} color="#4169e1" />
-                    <ListItem.Title style={{ fontSize: 18, marginLeft: 10 }}>{item.displayName}</ListItem.Title>
+            <ListItem.Content style={{ flexDirection: 'row', justifyContent: 'flex-start' }}>
+                <View style={{ alignSelf: 'center', marginRight: 20 }}>
+                    <MaterialCommunityIcons
+                        size={30}
+                        color="#4169e1"
+                        name={recipients.includes(item.phoneNumbers[0].number) ? 'circle' : 'circle-outline'}
+                    />
                 </View>
-                <View style={styles.ModalListTitleView}>
-                    <Icon name="call-sharp" size={20} color="#4169e1" />
-                    <ListItem.Subtitle style={{ fontSize: 16, marginLeft: 13 }}>{item.phoneNumbers[0].number}</ListItem.Subtitle>
+                <View>
+                    <View style={{ ...styles.ModalListTitleView, marginBottom: 5 }}>
+                        <Icon name="person" size={20} color="#4169e1" />
+                        <ListItem.Title style={{ fontSize: 18, marginLeft: 10 }}>{item.displayName}</ListItem.Title>
+                    </View>
+                    <View style={styles.ModalListTitleView}>
+                        <Icon name="call-sharp" size={20} color="#4169e1" />
+                        <ListItem.Subtitle style={{ fontSize: 16, marginLeft: 13 }}>{item.phoneNumbers[0].number}</ListItem.Subtitle>
+                    </View>
                 </View>
             </ListItem.Content>
         </ListItem>
@@ -140,13 +246,13 @@ const SendSms = (props) => {
 
     return (
         <>
-            <View style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
-                {/* {loadingValues.isLoading && < Spinner style={{
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
+                {loadingValues.isLoading && < Spinner style={{
                     position: 'absolute',
                     zIndex: 1,
-                    left: '46%',
+                    left: '44%',
                     top: '50%'
-                }} size={70} color="blue" type="Circle" />} */}
+                }} size={70} color="blue" type="Circle" />}
                 <View style={styles.headerView}>
                     <TouchableOpacity
                         style={styles.iconView}
@@ -166,68 +272,135 @@ const SendSms = (props) => {
                     <View style={{ ...StyleSheet.absoluteFill }} >
                         <ImageBackground
                             source={require('../Images/bg0.jpg')}
-                            style={{ ...styles.imageBackground, opacity: 1 }}
+                            style={{ ...styles.imageBackground, opacity: loadingValues.backgroundOpactiy }}
                         >
-
-
-                            <View style={styles.numberFieldAndIconView} >
-                                <MyTextInput
-                                    textInputMode="contained"
-                                    textInputLabel="Mobile Number"
-                                    textInputWidth='80%'
-                                    getText={mobileNumber}
-                                    maxLength={11}
-                                    keyboardType='number-pad'
-                                    autoFocus={true}
-                                    textInputPlaceHolder="03001234567"
-                                    setText={(text) => setMobileNumber(text)}
-                                    textInputMarginBottom={0.1}
-                                // isError={showError.name}
-                                // onFocus={() => handleOnFocusField('name')}
-                                // onBlur={() => createNumberChip(mobileNumber)}
-                                />
-
-                                <TouchableOpacity
-                                    style={styles.iconView}
-                                    activeOpacity={0.5}
-                                    onPress={getContacts}
-                                >
-                                    <AntDesign name="contacts" size={40} color="#4169e1" />
-                                </TouchableOpacity>
-
-
-                            </View>
-
-                            <View style={{ zIndex: 1 }}>
-                                <MyButton
-                                    buttonName='Add Number'
-                                    buttonMode="contained"
-                                    buttonIcon='login'
-                                    buttonColor={commonStyles.primaryColor.backgroundColor}
-                                    buttonWidth='100%'
-                                    buttonDisabled={false}
-                                    onPress={() => createNumberChip(mobileNumber)}
-                                />
-                            </View>
-
-                            <View style={styles.chipView}>
-                                {create.map((item, index) => {
+                            <ScrollView horizontal style={styles.chipView}>
+                                {recipients.map((item, index) => {
                                     return <Chip
                                         mode="outlined"
                                         key={index}
                                         style={styles.chipStyling}
                                         textStyle={styles.chipText}
-                                        onClose={() => removeNumberChip(index)}
-                                        onPress={() => console.log('Pressed')}
+                                        onClose={() => removeNumberFromList(item)}
                                     >
                                         {item}
                                     </Chip>
                                 })}
+                            </ScrollView>
+
+                            <View style={styles.numberFieldAndIconView} >
+                                <MyTextInput
+                                    textInputMode="contained"
+                                    textInputLabel="Mobile Number"
+                                    textInputWidth='88%'
+                                    getText={mobileNumber.number}
+                                    maxLength={11}
+                                    keyboardType='number-pad'
+                                    autoFocus={true}
+                                    textInputPlaceHolder="03001234567"
+                                    setText={(text) => setMobileNumber({ ...mobileNumber, number: text })}
+                                    textInputMarginBottom={0.1}
+                                    isError={mobileNumber.showError}
+                                    onFocus={() => setMobileNumber({ ...mobileNumber, showError: false })}
+                                // onBlur={() => addNumberToList(mobileNumber)}
+                                />
+
+                                <TouchableOpacity
+                                    style={styles.iconView}
+                                    activeOpacity={0.5}
+                                    onPress={gotContacts ? () => setShowModal(true) : getContacts}
+                                >
+                                    <MaterialCommunityIcons name="contacts" size={35} color="#4169e1" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <HelperText
+                                type="error"
+                                visible={mobileNumber.showError}
+                                style={styles.helperTextStyling}
+                            >
+                                {mobileNumber.errorMessage}
+                            </HelperText>
+
+                            <View style={{ zIndex: 1, marginBottom: 20 }}>
+                                <MyButton
+                                    buttonName='Add Number'
+                                    buttonMode="contained"
+                                    buttonIcon='phone-plus'
+                                    buttonColor={commonStyles.primaryColor.backgroundColor}
+                                    buttonWidth='100%'
+                                    buttonDisabled={false}
+                                    onPress={() => checkNumberFormat(mobileNumber)}
+                                />
+                            </View>
+
+
+                            {/**************************************/}
+                            {/*MESSAGE TEXT INPUT */}
+                            {/**************************************/}
+
+
+                            <TextInput
+                                mode="outlined"
+                                label="Message*"
+                                multiline
+                                maxLength={250}
+                                numberOfLines={8}
+                                value={message.message}
+                                style={{
+                                    width: '100%',
+                                    fontSize: 18,
+                                    backgroundColor: message.bgColor,
+                                }}
+                                theme={{ colors: { primary: commonStyles.primaryColor.backgroundColor, underlineColor: 'transparent', } }}
+                                onFocus={handleMessageFocus}
+                                placeholder="Enter Your Message Here...."
+                                placeholderTextColor={commonStyles.placeHolderColor.color}
+                                onChangeText={(text) => setMessage({ ...message, message: text })}
+                                error={message.showError ? true : false}
+                                onBlur={handleMessageBlur}
+                            />
+
+                            {console.log(message.message)}
+
+                            {/*******************************************/}
+                            {/* HELPER TEXT FOR MESSAGE */}
+                            {/*******************************************/}
+
+
+                            <View style={styles.helperTextViewStyling}>
+                                <HelperText
+                                    type="error"
+                                    visible={message.showError}
+                                    style={styles.helperTextStyling}
+                                >
+                                    {message.error}
+                                </HelperText>
+
+                                <HelperText
+                                    type="error"
+                                    visible
+                                    style={{ paddingHorizontal: 0, fontSize: 14, color: '#000000' }}
+                                >
+                                    {message.message.length}/250
+                                    </HelperText>
+                            </View>
+
+                            <View style={{ width: '100%', zIndex: 1, position: 'absolute', bottom: 10, left: '8%' }}>
+                                <MyButton
+                                    buttonName='Send Message'
+                                    buttonMode="contained"
+                                    buttonIcon='send'
+                                    buttonColor={commonStyles.primaryColor.backgroundColor}
+                                    buttonWidth='100%'
+                                    buttonDisabled={false}
+                                    onPress={handleSendMessage}
+                                />
                             </View>
                         </ImageBackground>
                     </View>
                 </View>
-            </View >
+            </SafeAreaView >
 
             <Modal
                 visible={showModal}
@@ -243,13 +416,20 @@ const SendSms = (props) => {
                             alignItems: 'center'
                         }}
                     >
-                        <View></View>
-                        <Text style={styles.title}>Contacts</Text>
                         <TouchableOpacity
                             activeOpacity={0.5}
                             onPress={() => setShowModal(false)}
                         >
                             <Icon name="close" size={30} color="#4169e1" />
+                        </TouchableOpacity>
+
+                        <Text style={styles.title}>Contacts</Text>
+
+                        <TouchableOpacity
+                            activeOpacity={0.5}
+                            onPress={getContacts}
+                        >
+                            <Icon name="refresh" size={30} color="#4169e1" />
                         </TouchableOpacity>
 
                     </View>
@@ -264,18 +444,16 @@ const SendSms = (props) => {
                     >
                         Select Contacts To Send SMS
                     </Text>
-                    <View>
-                        <FlatList
-                            keyExtractor={keyExtractor}
-                            data={contacts}
-                            renderItem={renderItem}
-                            ItemSeparatorComponent={renderSeparator}
-                            containerStyle={{ borderBottomWidth: 0 }}
-                            style={{
-                                backgroundColor: 'transparent', width: '100%',
-                            }}
-                        />
-                    </View>
+
+                    <FlatList
+                        keyExtractor={keyExtractor}
+                        data={contacts}
+                        renderItem={renderItem}
+                        ItemSeparatorComponent={renderSeparator}
+                        showsVerticalScrollIndicator={false}
+                        containerStyle={{ borderBottomWidth: 0 }}
+                        style={{ backgroundColor: 'transparent', width: '100%' }}
+                    />
                 </ImageBackground>
             </Modal>
 
@@ -337,29 +515,27 @@ const styles = StyleSheet.create({
     },
     numberFieldAndIconView: {
         width: '100%',
+        height: '14%',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-        marginBottom: 10
+        // borderWidth: 2,
+        // borderColor: 'green'
+        // marginBottom: 10
     },
     chipView: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginTop: 10,
-        justifyContent: 'space-between'
+        maxHeight: 40,
+        // borderWidth: 2,
+        // borderColor: 'blue'
     },
     chipStyling: {
-        width: '49%',
         height: 40,
         alignItems: 'center',
-        marginBottom: 5
+        marginRight: 5
     },
     chipText: {
         fontSize: 16,
         fontWeight: 'bold'
-    },
-    detailsView: {
-        marginVertical: 8
     },
     title: {
         textTransform: 'uppercase',
@@ -367,6 +543,19 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: commonStyles.primaryColor.backgroundColor,
         backgroundColor: 'transparent',
+    },
+    helperTextViewStyling: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    helperTextStyling: {
+        fontSize: 12,
+        color: "red",
+        fontWeight: "bold",
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+        textTransform: 'uppercase',
     },
     ModalListTitleView: {
         flexDirection: 'row',

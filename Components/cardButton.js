@@ -24,7 +24,7 @@ const CardButton = (props) => {
             onPress={props.goTo}
             style={styles.cardButtonStyling}
         >
-            <Icon name={props.iconName} size={cardButtonIconSize} color={props.iconColor} />
+            <Icon name={props.iconName} size={60} color={props.iconColor} />
             <Text style={styles.cardButtonTextStyling}>{props.cardButtonName}</Text>
         </TouchableOpacity>
     );
@@ -34,19 +34,18 @@ export default CardButton;
 
 const styles = StyleSheet.create({
     cardButtonStyling: {
-        // marginTop: 20,
         justifyContent: 'center',
         flexDirection: 'column',
         alignItems: 'center',
-        width: cardButtonWidth,
-        height: cardButtonWidth,
-        borderWidth: 4,
-        borderColor: '#00aaff'
+        width: '40%',
+        height: 170,
+        backgroundColor: '#ffffff',
+        borderRadius: 15
     },
     cardButtonTextStyling: {
         fontSize: 16,
         color: commonStyles.primaryColor.backgroundColor,
-        marginTop: 5,
+        marginTop: 10,
         textTransform: 'uppercase',
         fontWeight: 'bold'
     }

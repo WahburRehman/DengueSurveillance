@@ -9,6 +9,9 @@ export default requestsReducer = (state = [], action) => {
             return state.filter(item => {
                 return item._id !== action.payload
             });
+        case 'addNewRequest':
+            state.unshift(action.payload);
+            return state
         default: return state
     }
 }

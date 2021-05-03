@@ -1,4 +1,5 @@
 import React, { useState, useEffect, } from 'react';
+import Spinner from 'react-native-spinkit';
 import {
     View,
     Text,
@@ -22,6 +23,11 @@ import moment from 'moment';
 import Animated from 'react-native-reanimated';
 import BottomSheet from 'reanimated-bottom-sheet';
 import ImagePicker from 'react-native-image-crop-picker';
+
+import { useSelector, useDispatch } from 'react-redux';
+
+//ACTIONS
+import * as actions from '../Redux/Actions/actions';
 
 
 //STYLESHEET
@@ -55,14 +61,23 @@ const AddPatientOnline = (props) => {
     const bs = React.createRef();
     const fall = new Animated.Value(1);
 
+    const dispatch = useDispatch();
+    const userInfo = useSelector(state => state.userInfo);
 
     const [hospitals, setHospitals] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showSnackbar, setShowSnackbar] = useState(false);
+
     const [serverResponse, setServerResponse] = useState({
         serverResponse: '',
         caseID: '',
     });
+
+    const [loadingValues, setLoadingValues] = useState({
+        isLoading: false,
+        backgroundOpactiy: 1
+    });
+
     const [districtIndex, setDistrictIndex] = useState(0);
     const [isPatientAdded, setIsPatientAdded] = useState(false);
 
@@ -71,25 +86,22 @@ const AddPatientOnline = (props) => {
 
 
     useEffect(() => {
-        fetch('http://10.0.2.2:3000/fetchAllHospitals', {
-            method: "POST",
+        fetch(`http://10.0.2.2:3000/fetchAllhospitalsNames`, {
+            method: "GET",
             headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                'fetch': 'name',
-            })
+                'Content-Type': 'application/json',
+                'Authorization': "Bearer " + userInfo.authToken
+            }
         })
             .then(result => result.json())
             .then(data => {
                 setHospitals(data);
+                setIsLoading(false);
             }).catch(error => {
                 setIsLoading(false);
                 console.log('error: ', error);
                 console.log('okay bro');
-            }).finally(() => {
-                setIsLoading(false);
-            })
+            });
     }, []);
 
     const [patientData, setPatientData] = useState({
@@ -257,6 +269,7 @@ const AddPatientOnline = (props) => {
             }
             else {
                 console.log(patientData)
+                setLoadingValues({ isLoading: true, backgroundOpactiy: 0.5 });
                 if (patientData.image) {
                     console.log('patient data image is true');
                     const formData = new FormData();
@@ -280,6 +293,7 @@ const AddPatientOnline = (props) => {
                         });
                     fetch('http://10.0.2.2:3000/addPatient', {
                         method: 'POST',
+                        headers: { 'Authorization': "Bearer " + userInfo.authToken },
                         body: formData
                     }).then(result => result.json())
                         .then(data => {
@@ -287,14 +301,14 @@ const AddPatientOnline = (props) => {
                                 console.log('data error: ', data.error)
                                 setServerResponse(data.error);
                                 setShowSnackbar(true);
+                                setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
                             } else {
                                 console.log('data message: ', data.message)
                                 resetStates();
-                                setServerResponse(prevState => {
-                                    return {
-                                        serverResponse: data.message,
-                                        caseID: data.caseID
-                                    }
+                                setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
+                                setServerResponse({
+                                    serverResponse: data.message,
+                                    caseID: data.caseID
                                 });
                                 setIsPatientAdded(true);
                             }
@@ -306,7 +320,8 @@ const AddPatientOnline = (props) => {
                     fetch('http://10.0.2.2:3000/addPatient', {
                         method: "POST",
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': "Bearer " + userInfo.authToken
                         },
                         body: JSON.stringify({
                             'name': patientData.name,
@@ -326,26 +341,28 @@ const AddPatientOnline = (props) => {
                     })
                         .then(res => res.json())
                         .then((data) => {
+                            console.log('data: ', data);
                             if (data.error) {
                                 console.log(data.error);
                                 setShowSnackbar(true);
                                 setServerResponse(data.error);
+                                setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
                             }
                             else if (data.message) {
                                 console.log(data.message);
                                 resetStates();
-                                setServerResponse(prevState => {
-                                    return {
-                                        serverResponse: data.message,
-                                        caseID: data.caseID
-                                    }
+                                setLoadingValues({ isLoading: false, backgroundOpactiy: 1 });
+                                setServerResponse({
+                                    serverResponse: data.message,
+                                    caseID: data.caseID
                                 });
                                 setIsPatientAdded(true);
                             }
                         }).catch(error => {
-                            console.log(error);
+                            console.log('catch error: ', error);
                         });
                 }
+
             }
         }
     }
@@ -479,8 +496,6 @@ const AddPatientOnline = (props) => {
     }
 
     const handleDistrictDropDownChange = (value, index) => {
-        console.log('value: ', value);
-        console.log('index: ', index);
         setDistrictIndex(index);
         setPatientData(prevState => { return { ...prevState, district: value, homeTown: '' } });
 
@@ -493,6 +508,12 @@ const AddPatientOnline = (props) => {
                 :
                 <>
                     <SafeAreaView style={{ flex: 1, backgroundColor: '#4169e1', padding: 5 }}>
+                        {loadingValues.isLoading && < Spinner style={{
+                            position: 'absolute',
+                            zIndex: 1,
+                            left: '44%',
+                            top: '50%'
+                        }} size={70} color="blue" type="Circle" />}
                         <View style={styles.headerView}>
                             <TouchableOpacity
                                 style={styles.iconView}
@@ -513,10 +534,13 @@ const AddPatientOnline = (props) => {
                         }}>
                             <View style={{ ...StyleSheet.absoluteFill }}>
                                 <ImageBackground source={require('../Images/bg0.jpg')}
-                                    style={styles.imageBackground}
+                                    style={{
+                                        ...styles.imageBackground,
+                                        opacity: loadingValues.backgroundOpactiy
+                                    }}
                                 >
                                     {!isPatientAdded ?
-                                        <ScrollView>
+                                        <ScrollView showsVerticalScrollIndicator={false}>
 
 
                                             {/**************************************/}
@@ -666,6 +690,7 @@ const AddPatientOnline = (props) => {
                                                 textInputMarginBottom={0.1}
                                                 isError={showError.phNo}
                                                 keyboardType="phone-pad"
+                                                maxLength={11}
                                                 onFocus={() => handleOnFocusField('phNo')}
                                             />
 
@@ -943,8 +968,8 @@ const AddPatientOnline = (props) => {
                                             alignItems: 'center'
                                         }}
                                         >
-                                            <Text style={styles.serverResponseText}>{serverResponse}</Text>
-                                            <Text style={styles.serverResponseText}>Case ID is: 1604202101</Text>
+                                            <Text style={styles.serverResponseText}>{serverResponse.serverResponse}</Text>
+                                            <Text style={styles.serverResponseText}>Case ID is: {serverResponse.caseID}</Text>
 
                                             <View style={{
                                                 marginTop: 20,
@@ -1008,7 +1033,7 @@ const AddPatientOnline = (props) => {
 
                         }}
                     >
-                        {serverResponse}
+                        {serverResponse.serverResponse}
                     </Snackbar>
                 </>
             }
@@ -1077,6 +1102,7 @@ const styles = StyleSheet.create({
     },
     fab: {
         position: 'absolute',
+        zIndex: 1,
         marginBottom: 50,
         right: 0,
         bottom: 0,

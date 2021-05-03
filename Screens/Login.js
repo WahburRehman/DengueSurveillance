@@ -131,36 +131,44 @@ const Login = (props) => {
                         borderBottomStartRadius: 25,
                         marginTop: 5,
                         marginHorizontal: 5,
-                        alignItems: 'center',
-                        paddingVertical: '3%',
+                        overflow: 'hidden',
                     }}
                 >
-                    <View>
-                        <FontAwesome5 name="hospital" size={66} color="#FAF0EF" />
-                    </View>
-
-                    <View style={{ marginTop: 16 }}>
-                        <Text style={styles.titleStyling}>A System</Text>
-                        <Text style={{ ...styles.titleStyling, fontSize: 22 }}>for</Text>
-                        <Text style={styles.titleStyling}>Dengue Surveillance</Text>
-                        <Text style={{ ...styles.titleStyling, fontSize: 22 }}>And</Text>
-                        <Text style={styles.titleStyling}>Data collection</Text>
-                        <Text style={{ ...styles.titleStyling, fontSize: 22 }}>in</Text>
-                        <Text style={styles.titleStyling}>Pakistan</Text>
-                    </View>
-
-                    <View
+                    <ImageBackground source={require('../Images/dashboard.jpg')}
                         style={{
-                            backgroundColor: '#4169e1',
-                            position: 'absolute',
-                            bottom: '-8%',
-                            borderRadius: 100,
-                            padding: 0,
+                            flex: 1,
+                            alignItems: 'center',
+                            paddingVertical: '3%'
                         }}
                     >
-                        <FontAwesome5 name="user-circle" size={70} color="#FAF0EF" />
-                    </View>
+                        <View>
+                            <FontAwesome5 name="hospital" size={66} color="#FAF0EF" />
+                        </View>
 
+                        <View style={{ marginTop: 12 }}>
+                            <Text style={styles.titleStyling}>A System</Text>
+                            <Text style={{ ...styles.titleStyling, fontSize: 22 }}>for</Text>
+                            <Text style={styles.titleStyling}>Dengue Surveillance</Text>
+                            <Text style={{ ...styles.titleStyling, fontSize: 22 }}>And</Text>
+                            <Text style={styles.titleStyling}>Data collection</Text>
+                            <Text style={{ ...styles.titleStyling, fontSize: 22 }}>in</Text>
+                            <Text style={styles.titleStyling}>Pakistan</Text>
+                        </View>
+                    </ImageBackground>
+                </View>
+
+                <View
+                    style={{
+                        backgroundColor: '#4169e1',
+                        position: 'absolute',
+                        bottom: '42.5%',
+                        right: '42%',
+                        borderRadius: 100,
+                        padding: 0,
+
+                    }}
+                >
+                    <FontAwesome5 name="user-circle" size={70} color="#FAF0EF" />
                 </View>
 
                 <View
