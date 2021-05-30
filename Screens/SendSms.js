@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { } from 'react-native';
 import { Chip } from 'react-native-paper';
 import Contacts from 'react-native-contacts';
-import { useSelector, useDispatch } from 'react-redux';
 import Spinner from 'react-native-spinkit';
 import { ListItem } from 'react-native-elements';
 import { useNetInfo } from "@react-native-community/netinfo";
+import { useSelector, useDispatch } from 'react-redux';
 import {
     View,
     StyleSheet,
@@ -24,8 +24,6 @@ import {
     HelperText
 } from 'react-native-paper';
 
-//ACTIONS
-import * as actions from '../Redux/Actions/actions';
 
 //STYLESHEET
 import commonStyles from '../StyleSheets/StyleSheet';
@@ -50,6 +48,7 @@ const SendSms = (props) => {
     const [contacts, setContacts] = useState([]);
     const [recipients, setRecipients] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const userInfo = useSelector(state => state.userInfo);
     const [mobileNumber, setMobileNumber] = useState({
         number: '',
         errorMessage: 'Please Follow required format',
@@ -93,6 +92,7 @@ const SendSms = (props) => {
 
     const checkNumberFormat = (number) => {
         Keyboard.dismiss();
+        console.log('NUMBER: ', number)
         if (!numberRegex.test(number)) {
             console.log('invalid format');
             setMobileNumber({ ...mobileNumber, showError: true });
@@ -100,7 +100,7 @@ const SendSms = (props) => {
             if (recipients.length > 9) {
                 alert("maximum 10 recipients can be selected");
             } else {
-                setMobileNumber('');
+                setMobileNumber({ ...mobileNumber, number: '' });
                 setRecipients([...recipients, number]);
             }
         }
@@ -330,7 +330,7 @@ const SendSms = (props) => {
                                     buttonColor={commonStyles.primaryColor.backgroundColor}
                                     buttonWidth='100%'
                                     buttonDisabled={false}
-                                    onPress={() => checkNumberFormat(mobileNumber)}
+                                    onPress={() => checkNumberFormat(mobileNumber.number)}
                                 />
                             </View>
 

@@ -17,7 +17,7 @@ const Communication = ({ navigation }) => {
     }
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <Header headerTitle="Communication" />
+            {/* <Header headerTitle="Communication" /> */}
             <TopTabNavigator />
         </SafeAreaView>
     );

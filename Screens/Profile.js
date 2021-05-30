@@ -64,7 +64,7 @@ const Profile = (props) => {
                         <ImageBackground source={require('../Images/bg0.jpg')}
                             style={styles.imageBackground}
                         >
-                            <ScrollView>
+                            <ScrollView showsVerticalScrollIndicator={false}>
                                 <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                                     <Image source={{ uri: 'data:image/png;base64,' + userInfo.dp }} style={styles.profile} />
                                 </View>

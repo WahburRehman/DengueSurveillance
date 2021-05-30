@@ -104,7 +104,7 @@ const PatientDetails = (props) => {
                         <Icon name="arrow-back" size={30} color="#ffffff" />
                     </TouchableOpacity>
 
-                    <Text style={styles.headerText}>PROFILE</Text>
+                    <Text style={styles.headerText}>Patient Details</Text>
 
                     <View></View>
                 </View>

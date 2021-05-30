@@ -17,7 +17,7 @@ const TopTabNavigator = () => {
             tabBarOptions={{
                 activeTintColor: "#ffffff",
                 inactiveTintColor: "#5a5a5a",
-                style: { backgroundColor: '#00aaff' },
+                style: { backgroundColor: '#4169e1' },
                 labelStyle: {
                     fontSize: 16,
                     textTransform: 'uppercase',
@@ -29,7 +29,7 @@ const TopTabNavigator = () => {
                 name="calls"
                 component={Calls}
                 options={{
-                    tabBarLabel: "Calls",
+                    tabBarLabel: "Call",
                 }}
 
             />
@@ -37,7 +37,7 @@ const TopTabNavigator = () => {
                 name="chats"
                 component={Chats}
                 options={{
-                    tabBarLabel: "Chats",
+                    tabBarLabel: "Logs",
                 }}
             />
         </TopTab.Navigator>
